@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Lora } from 'next/font/google'
 import './globals.css'
-import Providers from '@/components/Providers'
 
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora' })
 
@@ -24,7 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${lora.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   )

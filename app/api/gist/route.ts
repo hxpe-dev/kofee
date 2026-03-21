@@ -1,10 +1,28 @@
-import { getServerSession } from 'next-auth'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
-  const session = await getServerSession()
+  const cookieStore = await cookies()
 
-  if (!session?.githubAccessToken) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.provider_token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -13,15 +31,13 @@ export async function POST(req: Request) {
   const res = await fetch('https://api.github.com/gists', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${session.githubAccessToken}`,
+      Authorization: `Bearer ${session.provider_token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       description: title,
       public: false,
-      files: {
-        [`${title}.${lang}`]: { content: code },
-      },
+      files: { [`${title}.${lang}`]: { content: code } },
     }),
   })
 

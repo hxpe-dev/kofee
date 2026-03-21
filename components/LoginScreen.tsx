@@ -1,62 +1,48 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginScreen() {
+  async function signInWithGithub() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        scopes: 'gist',
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
     <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      background: 'var(--bg)',
-      gap: '32px',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      height: '100vh', background: 'var(--bg)', gap: '32px',
     }}>
       <div style={{ textAlign: 'center' }}>
         <h1 style={{
           fontFamily: 'var(--font-lora), serif',
-          fontSize: '42px',
-          color: 'var(--accent2)',
-          fontWeight: 500,
-          letterSpacing: '-0.5px',
-          marginBottom: '8px',
+          fontSize: '42px', color: 'var(--accent2)',
+          fontWeight: 500, letterSpacing: '-0.5px', marginBottom: '8px',
         }}>
           Kofee
         </h1>
         <p style={{
-          color: 'var(--text-faint)',
-          fontSize: '13px',
-          fontFamily: 'JetBrains Mono, monospace',
-          letterSpacing: '0.05em',
+          color: 'var(--text-faint)', fontSize: '13px',
+          fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.05em',
         }}>
           your brew of code
         </p>
       </div>
 
       <button
-        onClick={() => signIn('github')}
+        onClick={signInWithGithub}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          background: 'var(--surface)',
-          border: '1px solid var(--border2)',
-          borderRadius: '10px',
-          padding: '12px 24px',
-          color: 'var(--text)',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '13px',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(200,150,90,0.4)'
-          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--accent2)'
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'
-          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text)'
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: 'var(--surface)', border: '1px solid var(--border2)',
+          borderRadius: '10px', padding: '12px 24px',
+          color: 'var(--text)', fontFamily: 'JetBrains Mono, monospace',
+          fontSize: '13px', cursor: 'pointer',
         }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
