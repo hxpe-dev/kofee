@@ -148,7 +148,7 @@ interface Props {
 // ── Component ─────────────────────────────────────────────────────
 export default function CodeEditor({ value, lang, onChange }: Props) {
   return (
-    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <CodeMirror
         value={value}
         height="100%"
