@@ -14,41 +14,56 @@ import { Extension } from '@codemirror/state'
 import { tags } from '@lezer/highlight'
 import { createTheme } from '@uiw/codemirror-themes'
 
+const palette = {
+  bg:          'transparent',
+  text:        '#e8d8c0',
+  textFaint:   '#7a6555',   // matches --color-text-faint
+  textDim:     '#b89880',   // matches --color-text-dim
+  accent:      '#c8965a',   // matches --color-accent
+  accent2:     '#e8b878',   // matches --color-accent-2
+  string:      '#98c090',
+  number:      '#d4a870',
+  comment:     '#6a5040',
+  punctuation: '#8a6848',
+  operator:    '#a07858',
+  border:      'transparent',
+}
+
 // ── Kofee warm theme ──────────────────────────────────────────────
 const kofeeTheme = createTheme({
   theme: 'dark',
   settings: {
-    background:        'transparent',
-    foreground:        '#e8d8c0',
-    caret:             '#c8965a',
-    selection:         'rgba(200,150,90,0.2)',
-    selectionMatch:    'rgba(200,150,90,0.12)',
-    lineHighlight:     'rgba(200,150,90,0.04)',
-    gutterBackground:  'transparent',
-    gutterForeground:  '#5a4838',
-    gutterBorder:      'transparent',
+    background:       palette.bg,
+    foreground:       palette.text,
+    caret:            palette.accent,
+    selection:        'rgba(200,150,90,0.2)',
+    selectionMatch:   'rgba(200,150,90,0.12)',
+    lineHighlight:    'rgba(200,150,90,0.04)',
+    gutterBackground: palette.bg,
+    gutterForeground: palette.textFaint,
+    gutterBorder:     palette.border,
   },
   styles: [
-    { tag: tags.comment,              color: '#6a5040', fontStyle: 'italic' },
-    { tag: tags.keyword,              color: '#c8965a' },
-    { tag: tags.operator,             color: '#a07858' },
-    { tag: tags.punctuation,          color: '#8a6848' },
-    { tag: tags.string,               color: '#98c090' },
-    { tag: tags.number,               color: '#d4a870' },
-    { tag: tags.bool,                 color: '#c8965a' },
-    { tag: tags.null,                 color: '#c8965a' },
-    { tag: tags.variableName,         color: '#e8d8c0' },
+    { tag: tags.comment,              color: palette.comment, fontStyle: 'italic' },
+    { tag: tags.keyword,              color: palette.accent },
+    { tag: tags.operator,             color: palette.operator },
+    { tag: tags.punctuation,          color: palette.punctuation },
+    { tag: tags.string,               color: palette.string },
+    { tag: tags.number,               color: palette.number },
+    { tag: tags.bool,                 color: palette.accent },
+    { tag: tags.null,                 color: palette.accent },
+    { tag: tags.variableName,         color: palette.text },
     { tag: tags.definition(tags.variableName), color: '#d8c8a8' },
-    { tag: tags.function(tags.variableName),   color: '#e8b878' },
-    { tag: tags.className,            color: '#e8b878' },
-    { tag: tags.typeName,             color: '#b8a888' },
+    { tag: tags.function(tags.variableName),   color: palette.accent2 },
+    { tag: tags.className,            color: palette.accent2 },
+    { tag: tags.typeName,             color: palette.textDim },
     { tag: tags.propertyName,         color: '#c0a878' },
-    { tag: tags.attributeName,        color: '#c8965a' },
-    { tag: tags.attributeValue,       color: '#98c090' },
-    { tag: tags.tagName,              color: '#e8b878' },
-    { tag: tags.angleBracket,         color: '#8a6848' },
-    { tag: tags.meta,                 color: '#6a5040' },
-    { tag: tags.regexp,               color: '#98c090' },
+    { tag: tags.attributeName,        color: palette.accent },
+    { tag: tags.attributeValue,       color: palette.string },
+    { tag: tags.tagName,              color: palette.accent2 },
+    { tag: tags.angleBracket,         color: palette.punctuation },
+    { tag: tags.meta,                 color: palette.comment },
+    { tag: tags.regexp,               color: palette.string },
   ],
 })
 
@@ -61,16 +76,15 @@ const editorStyles = EditorView.theme({
   },
   '.cm-scroller': {
     overflow: 'auto',
-    padding: '24px 0 24px 0',
+    padding: '24px 0',
     lineHeight: '1.8',
     fontFamily: '"JetBrains Mono", monospace',
   },
   '.cm-content': {
-    caretColor: '#c8965a',
+    caretColor: palette.accent,
     minHeight: '100%',
     paddingRight: '28px',
   },
-  // ── Fix: match gutter line height to editor line height ──
   '.cm-gutters': {
     paddingRight: '0',
     paddingLeft: '28px',
@@ -78,9 +92,7 @@ const editorStyles = EditorView.theme({
     display: 'flex',
     alignItems: 'flex-start',
   },
-  '.cm-gutter.cm-lineNumbers': {
-    minWidth: '28px',
-  },
+  '.cm-gutter.cm-lineNumbers': { minWidth: '28px' },
   '.cm-lineNumbers .cm-gutterElement': {
     fontSize: '11px',
     lineHeight: '1.8',
@@ -88,39 +100,17 @@ const editorStyles = EditorView.theme({
     alignItems: 'center',
     justifyContent: 'flex-end',
     padding: '0 8px 0 0',
-    // Match the exact line height of the editor
     height: 'calc(13px * 1.8)',
     boxSizing: 'content-box',
   },
-  '.cm-activeLine': {
-    backgroundColor: 'rgba(200,150,90,0.04) !important',
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: 'transparent',
-    color: '#9a8070 !important',
-  },
-  '.cm-selectionBackground': {
-    backgroundColor: 'rgba(200,150,90,0.2) !important',
-  },
-  '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'rgba(200,150,90,0.25) !important',
-  },
-  '.cm-cursor': {
-    borderLeftColor: '#c8965a !important',
-    borderLeftWidth: '2px',
-  },
-  '.cm-matchingBracket': {
-    backgroundColor: 'rgba(200,150,90,0.2)',
-    outline: '1px solid rgba(200,150,90,0.4)',
-    borderRadius: '2px',
-  },
-  '.cm-placeholder': {
-    color: '#5a4838',
-    fontStyle: 'italic',
-  },
-  '&.cm-focused': {
-    outline: 'none',
-  },
+  '.cm-activeLine':      { backgroundColor: 'rgba(200,150,90,0.04) !important' },
+  '.cm-activeLineGutter':{ backgroundColor: 'transparent', color: `${palette.textDim} !important` },
+  '.cm-selectionBackground':          { backgroundColor: 'rgba(200,150,90,0.2) !important' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: 'rgba(200,150,90,0.25) !important' },
+  '.cm-cursor':          { borderLeftColor: `${palette.accent} !important`, borderLeftWidth: '2px' },
+  '.cm-matchingBracket': { backgroundColor: 'rgba(200,150,90,0.2)', outline: '1px solid rgba(200,150,90,0.4)', borderRadius: '2px' },
+  '.cm-placeholder':     { color: palette.textFaint, fontStyle: 'italic' },
+  '&.cm-focused':        { outline: 'none' },
 })
 
 // ── Language resolver ─────────────────────────────────────────────

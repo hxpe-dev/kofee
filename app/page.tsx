@@ -61,6 +61,7 @@ export default function Home() {
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [toastVisible, setToastVisible] = useState(false)
   const [brewOpen, setBrewOpen] = useState(false)
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [langOpen, setLangOpen] = useState(false)
@@ -238,7 +239,9 @@ export default function Home() {
   // ── Toast ──────────────────────────────────────────────────────
   function showToast(msg: string) {
     setToast(msg)
-    setTimeout(() => setToast(''), 2500)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), 2000) // start fade out
+    setTimeout(() => setToast(''), 2300)           // remove after fade
   }
 
   // ── Filter ─────────────────────────────────────────────────────
@@ -402,7 +405,11 @@ export default function Home() {
         </div>
       )}
 
-      {toast && <div className={styles.toast}>{toast}</div>}
+      {toast && (
+        <div className={`${styles.toast} ${!toastVisible ? styles.toastOut : ''}`}>
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
