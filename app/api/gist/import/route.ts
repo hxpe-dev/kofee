@@ -21,9 +21,18 @@ export async function POST(req: Request) {
   )
 
   const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session?.provider_token) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data: tokenRow } = await supabase
+    .from('user_tokens')
+    .select('github_token')
+    .eq('user_id', session.user.id)
+    .single()
+
+  if (!tokenRow?.github_token) {
+    return NextResponse.json({ error: 'No GitHub token — please sign out and sign in again' }, { status: 401 })
   }
 
   const { gistUrl } = await req.json()
@@ -37,7 +46,7 @@ export async function POST(req: Request) {
   const gistId = match[1]
   const res = await fetch(`https://api.github.com/gists/${gistId}`, {
     headers: {
-      Authorization: `Bearer ${session.provider_token}`,
+      Authorization: `Bearer ${tokenRow.github_token}`,
       Accept: 'application/vnd.github+json',
     },
   })

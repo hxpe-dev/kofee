@@ -17,7 +17,10 @@ export default function LoginScreen() {
   return (
     <div className={styles.page}>
       <div className={styles.logoGroup}>
-        <h1 className={styles.logoTitle}>Kofee</h1>
+        <div className={styles.logo}>
+          <div className={styles.logoDot} />
+          Kofee
+        </div>
         <p className={styles.logoSub}>your brew of code</p>
       </div>
 

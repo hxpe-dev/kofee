@@ -47,9 +47,11 @@ export default function Sidebar({
   snippets, currentId, onSelect, onNew, onImported,
   search, onSearch, activeTag, onTagClick, onLogoClick
 }: Props) {
-  const [session, setSession]       = useState<Session | null>(null)
-  const [menuOpen, setMenuOpen]     = useState(false)
+  const [session, setSession] = useState<Session | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [visibleSnippets, setVisibleSnippets] = useState<Snippet[]>(snippets)
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
@@ -62,6 +64,28 @@ export default function Sidebar({
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [menuOpen])
+
+  useEffect(() => {
+    const currentIds = new Set(snippets.map(s => s.id))
+    const prevIds = new Set(visibleSnippets.map(s => s.id))
+
+    // Find items that are leaving
+    const leaving = visibleSnippets.filter(s => !currentIds.has(s.id))
+
+    if (leaving.length === 0) {
+      setVisibleSnippets(snippets)
+      return
+    }
+
+    // Mark them as exiting
+    setExitingIds(new Set(leaving.map(s => s.id)))
+
+    // Remove them after animation completes
+    setTimeout(() => {
+      setVisibleSnippets(snippets)
+      setExitingIds(new Set())
+    }, 220)
+  }, [snippets])
 
   const allTags    = [...new Set(snippets.flatMap(s => s.tags))]
   const avatarUrl  = session?.user?.user_metadata?.avatar_url
@@ -140,11 +164,15 @@ export default function Sidebar({
         {/* Snippet list */}
         <div className={styles.sectionLabel}>Snippets</div>
         <div className={styles.snippetList}>
-          {snippets.map((s, i) => (
+          {visibleSnippets.map((s, i) => (
             <div
               key={s.id}
               onClick={() => onSelect(s.id)}
-              className={`${styles.snippetItem} ${s.id === currentId ? styles.snippetItemActive : ''}`}
+              className={`
+                ${styles.snippetItem}
+                ${s.id === currentId ? styles.snippetItemActive : ''}
+                ${exitingIds.has(s.id) ? styles.snippetItemExit : ''}
+              `}
               style={{ animationDelay: `${i * 0.04}s` }}
             >
               <div className={styles.snippetTitle}>{s.title}</div>

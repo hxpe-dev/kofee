@@ -72,8 +72,15 @@ export default function Home() {
       setSession(session)
       setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
+      if (session?.provider_token && session?.user?.id) {
+        await supabase.from('user_tokens').upsert({
+          user_id:      session.user.id,
+          github_token: session.provider_token,
+          updated_at:   new Date().toISOString(),
+        })
+      }
     })
     return () => subscription.unsubscribe()
   }, [])
