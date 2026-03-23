@@ -4,27 +4,36 @@ import { useState } from 'react'
 import styles from '@/styles/importModal.module.css'
 
 const LANG_COLORS: Record<string, string> = {
-  js:   'var(--lang-js)',   ts:   'var(--lang-ts)',
-  py:   'var(--lang-py)',   css:  'var(--lang-css)',
-  bash: 'var(--lang-bash)', sql:  'var(--lang-sql)',
-  html: 'var(--lang-html)', json: 'var(--lang-json)',
-  other:'var(--lang-other)',
+  js: 'var(--lang-js)',
+  ts: 'var(--lang-ts)',
+  py: 'var(--lang-py)',
+  css: 'var(--lang-css)',
+  bash: 'var(--lang-bash)',
+  sql: 'var(--lang-sql)',
+  html: 'var(--lang-html)',
+  json: 'var(--lang-json)',
+  other: 'var(--lang-other)',
 }
 
 interface GistFile {
   filename: string
-  content:  string
+  content: string
   language: string
 }
 
 interface Props {
-  onImported: (snippet: { title: string; code: string; lang: string; gist_url: string }) => void
+  onImported: (snippet: {
+    title: string;
+    code: string;
+    lang: string;
+    gist_url: string
+  }) => void
   onClose: () => void
 }
 
 export default function ImportModal({ onImported, onClose }: Props) {
-  const [gistUrl, setGistUrl]       = useState('')
-  const [importing, setImporting]   = useState(false)
+  const [gistUrl, setGistUrl] = useState('')
+  const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const [pickerFiles, setPickerFiles] = useState<GistFile[]>([])
   const [pickerGistUrl, setPickerGistUrl] = useState('')
@@ -50,14 +59,14 @@ export default function ImportModal({ onImported, onClose }: Props) {
 
     if (data.files.length === 1) {
       onImported({
-        title:    data.title,
-        code:     data.files[0].content,
-        lang:     data.files[0].language,
+        title: data.title,
+        code: data.files[0].content,
+        lang: data.files[0].language,
         gist_url: data.gist_url,
       })
       onClose()
     } else {
-      // Multiple files → show picker
+      // Multiple files -> show picker
       setPickerFiles(data.files)
       setPickerGistUrl(data.gist_url)
     }
@@ -65,9 +74,9 @@ export default function ImportModal({ onImported, onClose }: Props) {
 
   function handlePickFile(file: GistFile) {
     onImported({
-      title:    file.filename,
-      code:     file.content,
-      lang:     file.language,
+      title: file.filename,
+      code: file.content,
+      lang: file.language,
       gist_url: pickerGistUrl,
     })
     onClose()
@@ -78,7 +87,7 @@ export default function ImportModal({ onImported, onClose }: Props) {
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
 
         {pickerFiles.length === 0 ? (
-          /* ── URL input view ── */
+          /* URL input view */
           <>
             <div className={styles.title}>Import from Gist</div>
             <div className={styles.subtitle}>
@@ -91,7 +100,7 @@ export default function ImportModal({ onImported, onClose }: Props) {
               value={gistUrl}
               onChange={e => { setGistUrl(e.target.value); setImportError('') }}
               onKeyDown={e => e.key === 'Enter' && handleImport()}
-              placeholder="https://gist.github.com/user/abc123"
+              placeholder="https://gist.github.com/user/works-on-my-machine"
             />
 
             {importError && (
@@ -112,7 +121,7 @@ export default function ImportModal({ onImported, onClose }: Props) {
             </div>
           </>
         ) : (
-          /* ── Multi-file picker view ── */
+          /* Multi-file picker view */
           <>
             <div className={styles.title}>Pick a file</div>
             <div className={styles.subtitle}>

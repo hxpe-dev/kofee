@@ -3,19 +3,37 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { encryptToken } from '@/lib/crypto'
 import { Snippet } from '@/types/snippet'
 import LoginScreen from '@/components/LoginScreen'
 import Sidebar from '@/components/Sidebar'
 import CodeEditor from '@/components/CodeEditor'
 import styles from '@/styles/page.module.css'
+import { strToU8, zip } from 'fflate'
+import type { AsyncZippable, GzipOptions } from 'fflate'
 
 const LANGS = ['js','ts','py','css','bash','sql','html','json','other']
 
-// ── Icons ─────────────────────────────────────────────────────────
+const EXTENSIONS: Record<string, string> = {
+  js: 'js', ts: 'ts', py: 'py', css: 'css',
+  bash: 'sh', sql: 'sql', html: 'html', json: 'json', other: 'txt'
+}
+
+// Icons
 function IconExpand() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/>
+    </svg>
+  )
+}
+
+function IconDownload() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
     </svg>
   )
 }
@@ -66,7 +84,7 @@ export default function Home() {
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [langOpen, setLangOpen] = useState(false)
 
-  // ── Auth ───────────────────────────────────────────────────────
+  // Auth
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -75,19 +93,22 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       if (session?.provider_token && session?.user?.id) {
+        const encrypted = await encryptToken(session.provider_token)
         await supabase.from('user_tokens').upsert({
-          user_id:      session.user.id,
-          github_token: session.provider_token,
-          updated_at:   new Date().toISOString(),
+          user_id: session.user.id,
+          github_token: encrypted,
+          updated_at: new Date().toISOString(),
         })
       }
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Escape closes brew mode ────────────────────────────────────
+  // Escape closes brew mode
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setBrewOpen(false) }
+    const handler = (e: KeyboardEvent) => { 
+      if (e.key === 'Escape') setBrewOpen(false) 
+    }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
@@ -100,7 +121,7 @@ export default function Home() {
     return () => document.removeEventListener('click', handler)
   }, [langOpen])
 
-  // ── Load snippets ──────────────────────────────────────────────
+  // Load snippets
   const loadSnippets = useCallback(async () => {
     if (!session?.user?.id) return
     const { data } = await supabase
@@ -111,9 +132,11 @@ export default function Home() {
     if (data) setSnippets(data)
   }, [session?.user?.id])
 
-  useEffect(() => { loadSnippets() }, [loadSnippets])
+  useEffect(() => { 
+    loadSnippets()
+  }, [loadSnippets])
 
-  // ── Select snippet ─────────────────────────────────────────────
+  // Select snippet
   function selectSnippet(id: string) {
     const s = snippets.find(x => x.id === id)
     if (!s) return
@@ -125,7 +148,7 @@ export default function Home() {
     setTagInput('')
   }
 
-  // ── Save ───────────────────────────────────────────────────────
+  // Save
   async function saveSnippet(id: string, patch: Partial<Snippet>) {
     setSaving(true)
     await supabase
@@ -136,6 +159,7 @@ export default function Home() {
     setSaving(false)
   }
 
+  // Handle any change in the snippet (title, code, lang) with automatic save after a short delay
   function handleFieldChange(field: string, value: string) {
     if (field === 'title') setTitle(value)
     if (field === 'code')  setCode(value)
@@ -145,13 +169,15 @@ export default function Home() {
     setSaveTimer(setTimeout(() => saveSnippet(currentId, { [field]: value }), 800))
   }
 
-  // ── New snippet ────────────────────────────────────────────────
+  // New snippet
   async function newSnippet() {
     if (!session?.user?.id) return
     const { data } = await supabase.from('snippets').insert({
       user_id: session.user.id,
       title: 'Untitled snippet',
-      code: '', lang: 'js', tags: [],
+      code: '',
+      lang: 'js',
+      tags: [],
     }).select().single()
 
     if (data) {
@@ -164,30 +190,36 @@ export default function Home() {
       setTagInput('')
       setTimeout(() => {
         const input = document.querySelector<HTMLInputElement>(`.${styles.titleInput}`)
-        if (input) { input.focus(); input.select() }
+        if (input) {
+          input.focus()
+          input.select()
+        }
       }, 50)
     }
   }
 
-  // ── Delete snippet ─────────────────────────────────────────────
+  // Delete snippet
   async function deleteSnippet() {
     if (!currentId) return
     await supabase.from('snippets').delete().eq('id', currentId)
     setCurrentId(null)
-    setTitle(''); setCode(''); setLang('js'); setTags([])
+    setTitle('')
+    setCode('')
+    setLang('js')
+    setTags([])
     await loadSnippets()
     showToast('Snippet deleted')
   }
 
-  // ── Import from Gist ───────────────────────────────────────────
+  // Import from Gist
   async function handleImported(snippet: { title: string; code: string; lang: string; gist_url: string }) {
     if (!session?.user?.id) return
     const { data } = await supabase.from('snippets').insert({
-      user_id:  session.user.id,
-      title:    snippet.title,
-      code:     snippet.code,
-      lang:     snippet.lang,
-      tags:     [],
+      user_id: session.user.id,
+      title: snippet.title,
+      code: snippet.code,
+      lang: snippet.lang,
+      tags: [],
       gist_url: snippet.gist_url,
     }).select().single()
 
@@ -198,11 +230,11 @@ export default function Home() {
       setCode(data.code)
       setLang(data.lang)
       setTags([])
-      showToast('✓ Gist imported')
+      showToast('Gist imported')
     }
   }
 
-  // ── Tags ───────────────────────────────────────────────────────
+  // Tags
   async function addTag(e: React.KeyboardEvent) {
     if (e.key !== 'Enter' || !tagInput.trim() || !currentId) return
     const newTags = [...new Set([...tags, tagInput.trim().toLowerCase()])]
@@ -218,7 +250,7 @@ export default function Home() {
     await saveSnippet(currentId, { tags: newTags })
   }
 
-  // ── Push to Gist ───────────────────────────────────────────────
+  // Push to Gist
   async function pushToGist() {
     if (!currentId) return
     showToast('Pushing to Gist...')
@@ -230,28 +262,87 @@ export default function Home() {
     const data = await res.json()
     if (data.url) {
       await saveSnippet(currentId, { gist_url: data.url })
-      showToast('✓ Gist created — opening...')
+      showToast('Gist created, opening...')
       window.open(data.url, '_blank')
     } else {
       showToast('Failed to create Gist')
     }
   }
 
-  // ── Copy ───────────────────────────────────────────────────────
+  // Copy
   function copyCode() {
     navigator.clipboard.writeText(code)
     showToast('Copied to clipboard')
   }
 
-  // ── Toast ──────────────────────────────────────────────────────
+  // Download single
+  function downloadSnippet() {
+    const ext = EXTENSIONS[lang] ?? 'txt'
+    const blob = new Blob([code], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${title.replace(/\s+/g, '-').toLowerCase()}.${ext}`
+    a.click()
+    URL.revokeObjectURL(url)
+    showToast('Downloaded')
+  }
+
+  // Download all
+  function downloadAllSnippets() {
+    const files: AsyncZippable = {}
+
+    snippets.forEach(s => {
+      const ext = EXTENSIONS[s.lang] ?? 'txt'
+      const safeName = s.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()
+      
+      let filename = `${safeName}.${ext}`
+      let counter = 1
+      while (filename in files) {
+        filename = `${safeName}-${counter}.${ext}`
+        counter++
+      }
+
+      const opts: GzipOptions = { mtime: new Date(s.updated_at) }
+      files[filename] = [strToU8(s.code), opts]
+    })
+
+    // Also include a metadata JSON
+    const meta = snippets.map(s => ({
+      title: s.title,
+      lang: s.lang,
+      tags: s.tags,
+      gist_url: s.gist_url,
+      created_at: s.created_at,
+    }))
+
+    files['kofee-metadata.json'] = [
+      strToU8(JSON.stringify(meta, null, 2)),
+      { mtime: new Date() } as GzipOptions
+    ]
+
+    zip(files, (err, data) => {
+      if (err) { showToast('Export failed'); return }
+      const blob = new Blob([data as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `kofee-snippets-${new Date().toISOString().split('T')[0]}.zip`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast(`Downloaded ${snippets.length} snippets`)
+    })
+  }
+
+  // Toast
   function showToast(msg: string) {
     setToast(msg)
     setToastVisible(true)
     setTimeout(() => setToastVisible(false), 2000) // start fade out
-    setTimeout(() => setToast(''), 2300)           // remove after fade
+    setTimeout(() => setToast(''), 2300) // remove after fade
   }
 
-  // ── Filter ─────────────────────────────────────────────────────
+  // Filter snippets based on search (in title and in code) and active tag
   const filtered = snippets
     .filter(s => !activeTag || s.tags.includes(activeTag))
     .filter(s => !search
@@ -261,11 +352,17 @@ export default function Home() {
 
   const currentSnippet = snippets.find(s => s.id === currentId)
 
-  // ── Auth guards ────────────────────────────────────────────────
-  if (loading)  return <div className={styles.loading}>brewing...</div>
+  // Auth guards
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        brewing...
+      </div>
+    )
+  } 
   if (!session) return <LoginScreen />
 
-  // ── Render ─────────────────────────────────────────────────────
+  // Render
   return (
     <div className={styles.app}>
       <Sidebar
@@ -280,8 +377,12 @@ export default function Home() {
         onTagClick={t => setActiveTag(activeTag === t ? null : t)}
         onLogoClick={() => {
           setCurrentId(null)
-          setTitle(''); setCode(''); setLang('js'); setTags([])
+          setTitle('')
+          setCode('')
+          setLang('js')
+          setTags([])
         }}
+        onDownloadAll={downloadAllSnippets}
       />
 
       <main className={styles.editorArea}>
@@ -307,6 +408,9 @@ export default function Home() {
                 </button>
                 <button className={styles.btnAction} onClick={() => setBrewOpen(true)}>
                   <IconExpand /> Brew
+                </button>
+                <button className={styles.btnAction} onClick={downloadSnippet}>
+                  <IconDownload /> Download
                 </button>
                 <button className={styles.btnActionPrimary} onClick={pushToGist}>
                   <IconGist /> Push to Gist

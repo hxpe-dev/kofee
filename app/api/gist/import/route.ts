@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { decryptToken } from '@/lib/crypto'
 
 export async function POST(req: Request) {
   const cookieStore = await cookies()
@@ -32,12 +33,14 @@ export async function POST(req: Request) {
     .single()
 
   if (!tokenRow?.github_token) {
-    return NextResponse.json({ error: 'No GitHub token — please sign out and sign in again' }, { status: 401 })
+    return NextResponse.json({ error: 'No GitHub token, please sign out and sign in again' }, { status: 401 })
   }
+
+  const githubToken = await decryptToken(tokenRow.github_token)
 
   const { gistUrl } = await req.json()
 
-  // Extract gist ID — supports https://gist.github.com/username/GIST_ID
+  // Extract gist ID: supports https://gist.github.com/username/GIST_ID
   const match = gistUrl.match(/gist\.github\.com\/[^/]+\/([a-f0-9]+)/i)
   if (!match) {
     return NextResponse.json({ error: 'Invalid Gist URL' }, { status: 400 })
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
   const gistId = match[1]
   const res = await fetch(`https://api.github.com/gists/${gistId}`, {
     headers: {
-      Authorization: `Bearer ${tokenRow.github_token}`,
+      Authorization: `Bearer ${githubToken}`,
       Accept: 'application/vnd.github+json',
     },
   })

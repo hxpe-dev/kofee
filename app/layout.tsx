@@ -5,7 +5,7 @@ import './globals.css'
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora' })
 
 export const metadata: Metadata = {
-  title: 'Kofee — Your brew of code',
+  title: 'Kofee - Your brew of code',
   description: 'A minimal code snippet manager',
 }
 

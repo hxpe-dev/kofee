@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { decryptToken } from '@/lib/crypto'
 
 export async function POST(req: Request) {
   const cookieStore = await cookies()
@@ -32,15 +33,17 @@ export async function POST(req: Request) {
     .single()
 
   if (!tokenRow?.github_token) {
-    return NextResponse.json({ error: 'No GitHub token — please sign out and sign in again' }, { status: 401 })
+    return NextResponse.json({ error: 'No GitHub token, please sign out and sign in again' }, { status: 401 })
   }
+
+  const githubToken = await decryptToken(tokenRow.github_token)
 
   const { title, code, lang } = await req.json()
 
   const res = await fetch('https://api.github.com/gists', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${tokenRow.github_token}`,
+      Authorization: `Bearer ${githubToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

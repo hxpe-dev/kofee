@@ -1,7 +1,3 @@
-/* ─────────────────────────────────────────────
-   page.module.css
-───────────────────────────────────────────── */
-
 /* Animations */
 
 @keyframes fadeSlideIn {
@@ -21,7 +17,7 @@
   to   { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 
-/* ── App shell ── */
+/* App shell */
 
 .app {
   display: flex;
@@ -30,7 +26,7 @@
   overflow: hidden;
 }
 
-/* ── Empty state ── */
+/* Empty state */
 
 .emptyState {
   flex: 1;
@@ -42,7 +38,10 @@
   gap: var(--space-3);
 }
 
-.emptyIcon  { font-size: 36px; opacity: 0.3; }
+.emptyIcon {
+  font-size: 36px;
+  opacity: 0.3;
+}
 
 .emptyTitle {
   font-family: var(--font-display);
@@ -68,7 +67,7 @@
   min-height: 0;
 }
 
-/* ── Editor layout ── */
+/* Editor layout */
 
 .editorArea {
   flex: 1;
@@ -86,7 +85,7 @@
   min-height: 0;
 }
 
-/* ── Top bar ── */
+/* Top bar */
 
 .topbar {
   display: flex;
@@ -108,7 +107,9 @@
   letter-spacing: -0.2px;
 }
 
-.titleInput::placeholder { color: var(--color-text-faint); }
+.titleInput::placeholder {
+  color: var(--color-text-faint);
+}
 
 .topbarActions {
   display: flex;
@@ -158,7 +159,7 @@
   color: var(--color-accent-2);
 }
 
-/* ── Meta bar ── */
+/* Meta bar */
 
 .metabar {
   display: flex;
@@ -241,8 +242,12 @@
   transition: border-color var(--transition-fast);
 }
 
-.tagInput::placeholder { color: var(--color-text-faint); }
-.tagInput:focus { border-color: rgba(200, 150, 90, 0.4); }
+.tagInput::placeholder {
+  color: var(--color-text-faint);
+}
+.tagInput:focus {
+  border-color: rgba(200, 150, 90, 0.4);
+}
 
 .tag {
   background: rgba(200, 150, 90, 0.12);
@@ -270,7 +275,7 @@
 
 .gistLink:hover { color: var(--color-accent); }
 
-/* ── Status bar ── */
+/* Status bar */
 
 .statusbar {
   display: flex;
@@ -280,11 +285,20 @@
   gap: var(--space-4);
 }
 
-.statusItem  { font-size: var(--font-size-xs); color: var(--color-text-faint); }
-.statusValue { color: var(--color-text-dim); }
-.statusSaved { font-size: var(--font-size-xs); color: var(--color-text-faint); margin-left: auto; }
+.statusItem  { 
+  font-size: var(--font-size-xs); 
+  color: var(--color-text-faint); 
+}
+.statusValue { 
+  color: var(--color-text-dim); 
+}
+.statusSaved { 
+  font-size: var(--font-size-xs); 
+  color: var(--color-text-dim); 
+  margin-left: auto; 
+}
 
-/* ── Toast ── */
+/* Toast */
 
 .toast {
   position: fixed;
@@ -307,7 +321,7 @@
   animation: toastOut 0.3s ease forwards;
 }
 
-/* ── Loading ── */
+/* Loading */
 
 .loading {
   display: flex;
@@ -320,7 +334,7 @@
   font-size: var(--font-size-base);
 }
 
-/* ── Brew mode overlay ── */
+/* Brew mode overlay */
 
 .brewOverlay {
   position: fixed;
@@ -362,4 +376,6 @@
   padding: var(--space-1) var(--space-2);
 }
 
-.brewClose:hover { color: var(--color-text-dim); }
+.brewClose:hover {
+  color: var(--color-text-dim);
+}

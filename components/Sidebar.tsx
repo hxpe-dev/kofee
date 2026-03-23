@@ -18,19 +18,20 @@ interface Props {
   activeTag: string | null
   onTagClick: (tag: string) => void
   onLogoClick: () => void
+  onDownloadAll: () => void
 }
 
-// Maps lang key → CSS variable color
+// Maps lang key -> CSS variable color
 const LANG_COLORS: Record<string, string> = {
-  js:   'var(--lang-js)',
-  ts:   'var(--lang-ts)',
-  py:   'var(--lang-py)',
-  css:  'var(--lang-css)',
+  js: 'var(--lang-js)',
+  ts: 'var(--lang-ts)',
+  py: 'var(--lang-py)',
+  css: 'var(--lang-css)',
   bash: 'var(--lang-bash)',
-  sql:  'var(--lang-sql)',
+  sql: 'var(--lang-sql)',
   html: 'var(--lang-html)',
   json: 'var(--lang-json)',
-  other:'var(--lang-other)',
+  other: 'var(--lang-other)',
 }
 
 function timeAgo(ts: string) {
@@ -45,7 +46,7 @@ function timeAgo(ts: string) {
 
 export default function Sidebar({
   snippets, currentId, onSelect, onNew, onImported,
-  search, onSearch, activeTag, onTagClick, onLogoClick
+  search, onSearch, activeTag, onTagClick, onLogoClick, onDownloadAll
 }: Props) {
   const [session, setSession] = useState<Session | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -67,7 +68,6 @@ export default function Sidebar({
 
   useEffect(() => {
     const currentIds = new Set(snippets.map(s => s.id))
-    const prevIds = new Set(visibleSnippets.map(s => s.id))
 
     // Find items that are leaving
     const leaving = visibleSnippets.filter(s => !currentIds.has(s.id))
@@ -87,9 +87,9 @@ export default function Sidebar({
     }, 220)
   }, [snippets])
 
-  const allTags    = [...new Set(snippets.flatMap(s => s.tags))]
-  const avatarUrl  = session?.user?.user_metadata?.avatar_url
-  const userName   = session?.user?.user_metadata?.user_name ?? session?.user?.email ?? ''
+  const allTags = [...new Set(snippets.flatMap(s => s.tags))]
+  const avatarUrl = session?.user?.user_metadata?.avatar_url
+  const userName = session?.user?.user_metadata?.user_name ?? session?.user?.email ?? ''
 
   return (
     <>
@@ -108,7 +108,10 @@ export default function Sidebar({
           <div className={styles.avatarMenuWrapper}>
             <div
               className={styles.avatarButton}
-              onClick={e => { e.stopPropagation(); setMenuOpen(v => !v) }}
+              onClick={e => {
+                e.stopPropagation()
+                setMenuOpen(v => !v)
+              }}
             >
               {avatarUrl
                 ? <img src={avatarUrl} alt={userName} className={styles.avatarImage} />
@@ -122,6 +125,12 @@ export default function Sidebar({
                   <div className={styles.avatarMenuName}>{userName}</div>
                   <div className={styles.avatarMenuEmail}>{session?.user?.email}</div>
                 </div>
+                <button
+                  className={styles.avatarMenuDownload}
+                  onClick={() => { onDownloadAll(); setMenuOpen(false) }}
+                >
+                  Download all snippets
+                </button>
                 <button
                   className={styles.avatarMenuSignOut}
                   onClick={() => supabase.auth.signOut()}

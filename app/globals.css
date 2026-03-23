@@ -1,11 +1,13 @@
-/* ─────────────────────────────────────────────
-   KOFEE DESIGN TOKENS
-   All colors, spacing, typography live here.
-   Reference these variables everywhere else.
-───────────────────────────────────────────── */
+/*
+
+KOFEE DESIGN
+All colors, spacing, typography live here.
+Reference these variables everywhere else.
+
+*/
 
 :root {
-  /* Background layers (darkest → lightest) */
+  /* Background layers (darkest -> lightest) */
   --color-bg:          #1c1410;
   --color-bg-elevated: #231a14;
   --color-bg-subtle:   #2c2018;
@@ -47,12 +49,12 @@
   --font-display: 'Lora', Georgia, serif;
   --font-mono:    'JetBrains Mono', 'Courier New', monospace;
 
-  --font-size-xs:   9px;
-  --font-size-sm:   11px;
-  --font-size-base: 13px;
-  --font-size-md:   15px;
+  --font-size-xs:   11px;
+  --font-size-sm:   12px;
+  --font-size-base: 14px;
+  --font-size-md:   16px;
   --font-size-lg:   20px;
-  --font-size-xl:   22px;
+  --font-size-xl:   24px;
   --font-size-2xl:  42px;
 
   /* Spacing scale */
@@ -80,9 +82,7 @@
   --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.6);
 }
 
-/* ─────────────────────────────────────────────
-   RESET & BASE
-───────────────────────────────────────────── */
+/* RESET & BASE */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -100,13 +100,22 @@ body {
   font-family: var(--font-mono);
   font-size:   var(--font-size-base);
   line-height: 1.6;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* ─────────────────────────────────────────────
-   SCROLLBARS (global)
-───────────────────────────────────────────── */
+/* SCROLLBARS (global) */
 
-::-webkit-scrollbar       { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-surface-2); border-radius: 2px; }
+::-webkit-scrollbar       {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-2);
+  border-radius: 2px;
+}
