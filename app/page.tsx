@@ -104,14 +104,62 @@ export default function Home() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Escape closes brew mode
+  // Handle keybinds
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { 
-      if (e.key === 'Escape') setBrewOpen(false) 
+    const handler = (e: KeyboardEvent) => {
+      const active = document.activeElement as HTMLElement
+
+      // Enter in title input -> focus code editor
+      if (e.key === 'Enter' && active?.classList.contains(styles.titleInput)) {
+        e.preventDefault()
+        const editor = document.querySelector<HTMLElement>('.cm-content')
+        editor?.focus()
+        return
+      }
+
+      // Ignore shortcuts when typing in an input/textarea
+      const isTyping = ['INPUT', 'TEXTAREA'].includes(active?.tagName)
+        || active?.classList.contains('cm-content')
+      if (isTyping) return
+
+      // N -> new snippet
+      if (e.key === 'n' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+        newSnippet()
+        return
+      }
+
+      // S -> force save current snippet
+      if (e.key === 's' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+        if (currentId) saveSnippet(currentId, { title, code, lang, tags })
+        return
+      }
+
+      // B -> brew mode
+      if (e.key === 'b' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+        if (currentId) setBrewOpen(v => !v)
+        return
+      }
+
+      // Escape -> exit brew mode (when in brew mode)
+      if (e.key === 'Escape' && brewOpen) {
+        setBrewOpen(false) 
+        return
+      }
+
+      // Escape -> deselect snippet (when not in brew mode)
+      if (e.key === 'Escape' && !brewOpen) {
+        setCurrentId(null)
+        setTitle(''); setCode(''); setLang('js'); setTags([])
+        return
+      }
     }
+
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [])
+  }, [currentId, brewOpen, title, code, lang, tags])
 
   // Close lang drop down on outside click
   useEffect(() => {
@@ -298,7 +346,7 @@ export default function Home() {
       
       let filename = `${safeName}.${ext}`
       let counter = 1
-      while (filename in files) {
+      while (Object.hasOwn(files, filename)) {
         filename = `${safeName}-${counter}.${ext}`
         counter++
       }
