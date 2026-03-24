@@ -396,7 +396,11 @@ export default function Home() {
       showToast('Gist created, opening...')
       window.open(data.url, '_blank')
     } else {
-      showToast('Failed to create Gist')
+      if (data.error) {
+        showToast(data.error)
+      } else {
+        showToast('Failed to create Gist')
+      }
     }
   }
 
@@ -493,7 +497,7 @@ export default function Home() {
   } 
   if (!session) return <LoginScreen />
 
-  
+
   // throw new Error('Test error')
 
   // Render

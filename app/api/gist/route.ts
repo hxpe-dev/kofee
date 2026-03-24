@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { decryptToken } from '@/lib/crypto'
+import { ratelimit } from '@/lib/ratelimit'
 
 export async function POST(req: Request) {
   const cookieStore = await cookies()
@@ -24,6 +25,11 @@ export async function POST(req: Request) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { success } = await ratelimit.limit(session.user.id)
+  if (!success) {
+    return NextResponse.json({ error: 'Too many requests, slow down' }, { status: 429 })
   }
 
   const { data: tokenRow } = await supabase
