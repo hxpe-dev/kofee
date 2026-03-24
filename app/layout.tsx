@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Lora } from 'next/font/google'
 import './globals.css'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora' })
 
@@ -23,7 +24,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${lora.variable} antialiased`}>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   )

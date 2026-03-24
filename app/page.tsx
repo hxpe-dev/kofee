@@ -493,6 +493,9 @@ export default function Home() {
   } 
   if (!session) return <LoginScreen />
 
+  
+  // throw new Error('Test error')
+
   // Render
   return (
     <div

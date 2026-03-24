@@ -174,32 +174,41 @@ export default function Sidebar({
         {/* Snippet list */}
         <div className={styles.sectionLabel}>Snippets</div>
         <div className={styles.snippetList}>
-          {visibleSnippets.map((s, i) => (
-            <div
-              key={s.id}
-              onClick={() => onSelect(s.id)}
-              className={`
-                ${styles.snippetItem}
-                ${s.id === currentId ? styles.snippetItemActive : ''}
-                ${exitingIds.has(s.id) ? styles.snippetItemExit : ''}
-              `}
-              style={{ animationDelay: `${i * 0.04}s` }}
-            >
-              <div className={styles.snippetTitle}>{s.title}</div>
-              <div className={styles.snippetMeta}>
-                <span
-                  className={styles.langBadge}
-                  style={{
-                    background: `color-mix(in srgb, ${LANG_COLORS[s.lang] ?? 'var(--lang-other)'} 15%, transparent)`,
-                    color: LANG_COLORS[s.lang] ?? 'var(--lang-other)',
-                  }}
-                >
-                  {s.lang}
-                </span>
-                <span className={styles.snippetAge}>{timeAgo(s.updated_at)}</span>
+          {visibleSnippets.length === 0 && (search || activeTag) ? (
+            <div className={styles.emptySearch}>
+              <div className={styles.emptySearchText}>No snippets found</div>
+              <div className={styles.emptySearchSub}>
+                {search ? `Nothing matching "${search}"` : `No snippets tagged "${activeTag}"`}
               </div>
             </div>
-          ))}
+          ) : (
+            visibleSnippets.map((s, i) => (
+              <div
+                key={s.id}
+                onClick={() => onSelect(s.id)}
+                className={`
+                  ${styles.snippetItem}
+                  ${s.id === currentId ? styles.snippetItemActive : ''}
+                  ${exitingIds.has(s.id) ? styles.snippetItemExit : ''}
+                `}
+                style={{ animationDelay: `${i * 0.04}s` }}
+              >
+                <div className={styles.snippetTitle}>{s.title}</div>
+                <div className={styles.snippetMeta}>
+                  <span
+                    className={styles.langBadge}
+                    style={{
+                      background: `color-mix(in srgb, ${LANG_COLORS[s.lang] ?? 'var(--lang-other)'} 15%, transparent)`,
+                      color: LANG_COLORS[s.lang] ?? 'var(--lang-other)',
+                    }}
+                  >
+                    {s.lang}
+                  </span>
+                  <span className={styles.snippetAge}>{timeAgo(s.updated_at)}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Actions */}
