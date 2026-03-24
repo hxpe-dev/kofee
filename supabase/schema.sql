@@ -39,3 +39,24 @@ create policy "Users manage their own token"
   on user_tokens for all
   using  (auth.uid()::text = user_id)
   with check (auth.uid()::text = user_id);
+
+
+-- Snippet limit trigger 
+
+create or replace function check_snippet_limit()
+returns trigger as $$
+begin
+  if (
+    select count(*) from snippets
+    where user_id = new.user_id
+  ) >= 100 then
+    raise exception 'Snippet limit reached (100 max)';
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger enforce_snippet_limit
+  before insert on snippets
+  for each row
+  execute function check_snippet_limit();

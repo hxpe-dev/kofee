@@ -15,8 +15,15 @@ import type { AsyncZippable, GzipOptions } from 'fflate'
 const LANGS = ['js','ts','py','css','bash','sql','html','json','other']
 
 const EXTENSIONS: Record<string, string> = {
-  js: 'js', ts: 'ts', py: 'py', css: 'css',
-  bash: 'sh', sql: 'sql', html: 'html', json: 'json', other: 'txt'
+  js: 'js',
+  ts: 'ts',
+  py: 'py',
+  css: 'css',
+  bash: 'sh',
+  sql: 'sql',
+  html: 'html',
+  json: 'json',
+  other: 'txt'
 }
 
 // Icons
@@ -83,6 +90,7 @@ export default function Home() {
   const [brewOpen, setBrewOpen] = useState(false)
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [langOpen, setLangOpen] = useState(false)
+  const [dragging, setDragging] = useState(false)
 
   // Auth
   useEffect(() => {
@@ -199,12 +207,69 @@ export default function Home() {
   // Save
   async function saveSnippet(id: string, patch: Partial<Snippet>) {
     setSaving(true)
+    const slowTimer = setTimeout(() => showToast('Saving is taking longer than usual...'), 3000)
     await supabase
       .from('snippets')
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq('id', id)
+    clearTimeout(slowTimer)
     await loadSnippets()
     setSaving(false)
+  }
+
+  // Handle file import
+  async function handleFileImport(file: File) {
+    if (!session?.user?.id) return
+
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    const extToLang: Record<string, string> = {
+      js: 'js',
+      jsx: 'js',
+      mjs: 'js',
+      ts: 'ts',
+      tsx: 'ts',
+      py: 'py',
+      css: 'css',
+      scss: 'css',
+      html: 'html',
+      htm: 'html',
+      json: 'json',
+      sh: 'bash',
+      bash: 'bash',
+      zsh: 'bash',
+      sql: 'sql',
+    }
+
+    const code = await file.text()
+    const lang = extToLang[ext] ?? 'other'
+    const title = file.name.replace(/\.[^.]+$/, '') // strip extension
+
+    const { data, error } = await supabase.from('snippets').insert({
+      user_id: session.user.id,
+      title,
+      code,
+      lang,
+      tags: [],
+    }).select().single()
+
+    if (error) {
+      if (error.message.includes('Snippet limit reached')) {
+        showToast('Snippet limit reached (100 max)')
+      } else {
+        showToast('Failed to create snippet')
+      }
+      return
+    }
+
+    if (data) {
+      await loadSnippets()
+      setCurrentId(data.id)
+      setTitle(data.title)
+      setCode(data.code)
+      setLang(data.lang)
+      setTags([])
+      showToast(`Imported ${file.name}`)
+    }
   }
 
   // Handle any change in the snippet (title, code, lang) with automatic save after a short delay
@@ -220,13 +285,22 @@ export default function Home() {
   // New snippet
   async function newSnippet() {
     if (!session?.user?.id) return
-    const { data } = await supabase.from('snippets').insert({
+    const { data, error } = await supabase.from('snippets').insert({
       user_id: session.user.id,
       title: 'Untitled snippet',
       code: '',
       lang: 'js',
       tags: [],
     }).select().single()
+
+    if (error) {
+      if (error.message.includes('Snippet limit reached')) {
+        showToast('Snippet limit reached (100 max)')
+      } else {
+        showToast('Failed to create snippet')
+      }
+      return
+    }
 
     if (data) {
       await loadSnippets()
@@ -262,7 +336,7 @@ export default function Home() {
   // Import from Gist
   async function handleImported(snippet: { title: string; code: string; lang: string; gist_url: string }) {
     if (!session?.user?.id) return
-    const { data } = await supabase.from('snippets').insert({
+    const { data, error } = await supabase.from('snippets').insert({
       user_id: session.user.id,
       title: snippet.title,
       code: snippet.code,
@@ -270,6 +344,15 @@ export default function Home() {
       tags: [],
       gist_url: snippet.gist_url,
     }).select().single()
+
+    if (error) {
+      if (error.message.includes('Snippet limit reached')) {
+        showToast('Snippet limit reached (100 max)')
+      } else {
+        showToast('Failed to create snippet')
+      }
+      return
+    }
 
     if (data) {
       await loadSnippets()
@@ -412,7 +495,19 @@ export default function Home() {
 
   // Render
   return (
-    <div className={styles.app}>
+    <div
+      className={styles.app}
+      onDragOver={e => { e.preventDefault(); setDragging(true) }}
+      onDragLeave={e => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false)
+      }}
+      onDrop={e => {
+        e.preventDefault()
+        setDragging(false)
+        const file = e.dataTransfer.files[0]
+        if (file) handleFileImport(file)
+      }}
+    >
       <Sidebar
         snippets={filtered}
         currentId={currentId}
@@ -431,6 +526,16 @@ export default function Home() {
           setTags([])
         }}
         onDownloadAll={downloadAllSnippets}
+        onImportFile={() => {
+          const input = document.createElement('input')
+          input.type = 'file'
+          input.accept = '.js,.jsx,.ts,.tsx,.py,.css,.scss,.html,.json,.sh,.bash,.sql,.txt,.md,.other'
+          input.onchange = e => {
+            const file = (e.target as HTMLInputElement).files?.[0]
+            if (file) handleFileImport(file)
+          }
+          input.click()
+        }}
       />
 
       <main className={styles.editorArea}>
@@ -567,6 +672,18 @@ export default function Home() {
       {toast && (
         <div className={`${styles.toast} ${!toastVisible ? styles.toastOut : ''}`}>
           {toast}
+        </div>
+      )}
+
+      {dragging && (
+        <div className={styles.dropOverlay}>
+          <div className={styles.dropContent}>
+            <div className={styles.dropIcon}>
+              <IconDownload />
+            </div>
+            <div className={styles.dropTitle}>Drop your file</div>
+            <div className={styles.dropSub}>Any code file - js, ts, py, css, sql and more</div>
+          </div>
         </div>
       )}
     </div>

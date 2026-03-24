@@ -1,20 +1,24 @@
 /* Animations */
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(5px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes modalIn {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes toastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 @keyframes toastOut {
   from { opacity: 1; transform: translateX(-50%) translateY(0); }
-  to   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 
 /* App shell */
@@ -379,4 +383,57 @@
 
 .brewClose:hover {
   color: var(--color-text-dim);
+}
+
+/* Drop overlay */
+
+.dropOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 10, 8, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.dropContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  animation: fadeSlideIn 0.2s ease;
+}
+
+.dropIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  background: rgba(200, 150, 90, 0.12);
+  border: 1px solid rgba(200, 150, 90, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+}
+
+.dropIcon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.dropTitle {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-accent-2);
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+
+.dropSub {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-faint);
+  letter-spacing: 0.04em;
 }

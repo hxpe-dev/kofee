@@ -170,7 +170,6 @@ If you're not sure whether something fits the project vision, open an issue firs
 
 Some ideas for future versions, contributions welcome:
 
-- [ ] Add toast warning if saving is taking too long
 - [ ] Collections / folders for snippets
 - [ ] Public snippet profiles
 - [ ] Snippet aging indicator (cold snippets you haven't used)

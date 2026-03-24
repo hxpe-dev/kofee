@@ -19,6 +19,7 @@ interface Props {
   onTagClick: (tag: string) => void
   onLogoClick: () => void
   onDownloadAll: () => void
+  onImportFile: () => void
 }
 
 // Maps lang key -> CSS variable color
@@ -45,8 +46,8 @@ function timeAgo(ts: string) {
 }
 
 export default function Sidebar({
-  snippets, currentId, onSelect, onNew, onImported,
-  search, onSearch, activeTag, onTagClick, onLogoClick, onDownloadAll
+  snippets, currentId, onSelect, onNew, onImported, search, onSearch, 
+  activeTag, onTagClick, onLogoClick, onDownloadAll, onImportFile
 }: Props) {
   const [session, setSession] = useState<Session | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -205,6 +206,9 @@ export default function Sidebar({
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={onNew}>
             + New Snippet
+          </button>
+          <button className={styles.btnSecondary} onClick={onImportFile}>
+            ↑ Import from file
           </button>
           <button className={styles.btnSecondary} onClick={() => setImportOpen(true)}>
             ↓ Import from Gist
