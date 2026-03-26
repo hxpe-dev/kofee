@@ -115,6 +115,7 @@ export default function ImportModal({ onImported, onClose }: Props) {
                 className={styles.btnImport}
                 onClick={handleImport}
                 disabled={importing || !gistUrl.trim()}
+                style={{ opacity: importing ? 0.6 : 1 }}
               >
                 {importing ? 'Importing...' : 'Import'}
               </button>

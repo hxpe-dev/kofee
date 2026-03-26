@@ -91,6 +91,9 @@ export default function Home() {
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [langOpen, setLangOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const [pushingGist, setPushingGist] = useState(false)
+  const [importingGist, setImportingGist] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   // Auth
   useEffect(() => {
@@ -99,11 +102,18 @@ export default function Home() {
       setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session)
-      if (session?.provider_token && session?.user?.id) {
+      // Verify the user is authentic
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setSession(session)
+      } else {
+        setSession(null)
+      }
+      
+      if (session?.provider_token && user?.id) {
         const encrypted = await encryptToken(session.provider_token)
         await supabase.from('user_tokens').upsert({
-          user_id: session.user.id,
+          user_id: user.id,
           github_token: encrypted,
           updated_at: new Date().toISOString(),
         })
@@ -179,11 +189,12 @@ export default function Home() {
 
   // Load snippets
   const loadSnippets = useCallback(async () => {
-    if (!session?.user?.id) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.id) return
     const { data } = await supabase
       .from('snippets')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
     if (data) setSnippets(data)
   }, [session?.user?.id])
@@ -219,7 +230,8 @@ export default function Home() {
 
   // Handle file import
   async function handleFileImport(file: File) {
-    if (!session?.user?.id) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.id) return
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
     const extToLang: Record<string, string> = {
@@ -245,7 +257,7 @@ export default function Home() {
     const title = file.name.replace(/\.[^.]+$/, '') // strip extension
 
     const { data, error } = await supabase.from('snippets').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       title,
       code,
       lang,
@@ -284,9 +296,10 @@ export default function Home() {
 
   // New snippet
   async function newSnippet() {
-    if (!session?.user?.id) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.id) return
     const { data, error } = await supabase.from('snippets').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       title: 'Untitled snippet',
       code: '',
       lang: 'js',
@@ -335,9 +348,11 @@ export default function Home() {
 
   // Import from Gist
   async function handleImported(snippet: { title: string; code: string; lang: string; gist_url: string }) {
-    if (!session?.user?.id) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.id || importingGist) return
+    setImportingGist(true)
     const { data, error } = await supabase.from('snippets').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       title: snippet.title,
       code: snippet.code,
       lang: snippet.lang,
@@ -363,6 +378,8 @@ export default function Home() {
       setTags([])
       showToast('Gist imported')
     }
+
+    setImportingGist(false)
   }
 
   // Tags
@@ -383,7 +400,8 @@ export default function Home() {
 
   // Push to Gist
   async function pushToGist() {
-    if (!currentId) return
+    if (!currentId || pushingGist) return
+    setPushingGist(true)
     showToast('Pushing to Gist...')
     const res = await fetch('/api/gist', {
       method: 'POST',
@@ -402,6 +420,7 @@ export default function Home() {
         showToast('Failed to create Gist')
       }
     }
+    setPushingGist(false)
   }
 
   // Copy
@@ -572,11 +591,27 @@ export default function Home() {
                 <button className={styles.btnAction} onClick={downloadSnippet}>
                   <IconDownload /> Download
                 </button>
-                <button className={styles.btnActionPrimary} onClick={pushToGist}>
-                  <IconGist /> Push to Gist
+                <button
+                  className={styles.btnActionPrimary}
+                  onClick={pushToGist}
+                  disabled={pushingGist}
+                  style={{ opacity: pushingGist ? 0.6 : 1 }}
+                >
+                  <IconGist /> {pushingGist ? 'Pushing...' : 'Push to Gist'}
                 </button>
-                <button className={styles.btnAction} onClick={deleteSnippet}>
-                  <IconTrash />
+                <button
+                  className={confirmDelete ? styles.btnActionDanger : styles.btnAction}
+                  onClick={() => {
+                    if (!confirmDelete) {
+                      setConfirmDelete(true)
+                      setTimeout(() => setConfirmDelete(false), 3000)
+                      return
+                    }
+                    deleteSnippet()
+                    setConfirmDelete(false)
+                  }}
+                >
+                  <IconTrash /> {confirmDelete ? 'Confirm?' : ''}
                 </button>
               </div>
             </div>

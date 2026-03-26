@@ -164,6 +164,25 @@
   color: var(--color-accent-2);
 }
 
+.btnActionDanger {
+  background: rgba(200, 80, 80, 0.15);
+  border: 1px solid rgba(200, 80, 80, 0.35);
+  border-radius: 7px;
+  padding: var(--space-1) var(--space-4);
+  color: var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  transition: background var(--transition-fast);
+}
+
+.btnActionDanger:hover {
+  background: rgba(200, 80, 80, 0.25);
+}
+
 /* Meta bar */
 
 .metabar {

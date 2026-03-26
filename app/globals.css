@@ -108,14 +108,30 @@ body {
 
 /* SCROLLBARS (global) */
 
-::-webkit-scrollbar       {
+*::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
-::-webkit-scrollbar-track {
+
+*::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
+
+*::-webkit-scrollbar-thumb {
   background: var(--color-surface-2);
   border-radius: 2px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-2);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3d2e1e transparent;
 }
