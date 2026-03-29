@@ -133,5 +133,5 @@ body {
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3d2e1e transparent;
+  scrollbar-color: var(--color-surface-2) transparent;
 }
