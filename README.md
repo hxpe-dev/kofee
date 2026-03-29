@@ -6,9 +6,12 @@
 
 *Your brew of code.*
 
-
-
 </div>
+
+> [!NOTE]
+> 🌱 **Kofee is just getting started.**  
+> We're running on free-tier infrastructure while we find our footing.  
+> If you try it and enjoy it, consider [supporting the project](https://ko-fi.com/hxpedev), it directly helps us scale beyond the free tier and keep building. Feedback, bug reports, and stars on the repo mean just as much. ☕
 
 ---
 
