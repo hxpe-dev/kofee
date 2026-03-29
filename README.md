@@ -42,6 +42,7 @@
 | Code editor | [CodeMirror 6](https://codemirror.net) via `@uiw/react-codemirror` |
 | Styling | CSS Modules |
 | Deployment | [Vercel](https://vercel.com) |
+| Rate limiting | [Upstash](https://upstash.com) (Redis) |
 
 ---
 
@@ -97,7 +98,17 @@ Generate a secure encryption key:
 openssl rand -base64 32
 ```
 
-### 5. Run locally
+### 5. Set up Upstash rate limiting
+
+Create a free [Upstash](https://upstash.com) Redis database, then add to `.env.local`:
+```env
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
+```
+
+Also add these to your Vercel environment variables when deploying.
+
+### 6. Run locally
 
 ```bash
 npm run dev
@@ -136,6 +147,9 @@ It includes:
 - The encryption key lives in your environment variables and never touches the database
 - Row Level Security (RLS) is enabled on all tables, users can only access their own data
 - The Supabase publishable key is safe to expose publicly by design
+- API routes are **rate limited** using Upstash Redis, 10 requests per minute per user on Gist endpoints
+- Snippet content is stored unencrypted, avoid storing sensitive credentials directly in snippets
+- Each user is limited to **100 snippets**, enforced at the database level via a PostgreSQL trigger
 
 ---
 
