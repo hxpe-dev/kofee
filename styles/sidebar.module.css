@@ -145,6 +145,9 @@
   text-align: left;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .avatarMenuDownload:hover {
@@ -164,11 +167,41 @@
   background: transparent;
   border: none;
   text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .avatarMenuSignOut:hover {
   background: rgba(200, 80, 80, 0.12);
   color: var(--color-danger);
+}
+
+
+.avatarMenuLinks {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+.avatarMenuLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.avatarMenuLink:hover {
+  background: rgba(200, 150, 90, 0.08);
+  color: var(--color-accent);
 }
 
 /* Search */
