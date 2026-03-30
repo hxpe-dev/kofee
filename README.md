@@ -213,3 +213,10 @@ Kofee is free and open source. If you find it useful and want to support its dev
 
 Built with ☕ by [hxpe](https://github.com/hxpe-dev)  
 If you enjoy **Kofee**, consider starring the [GitHub repository](https://github.com/hxpe-dev/kofee)!
+
+---
+
+## Estimated cost
+
+- Domain (~ $13 / year)
+- Supabase pro plan ($25 / month)
