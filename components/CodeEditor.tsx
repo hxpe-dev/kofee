@@ -15,8 +15,8 @@ import { tags } from '@lezer/highlight'
 import { createTheme } from '@uiw/codemirror-themes'
 
 const palette = {
-  bg: 'transparent',
-  text: '#e8d8c0',
+  bg: '#1c1410', // matches --color-bg
+  text: '#e8d8c0', // matches --color-text
   textFaint: '#7a6555', // matches --color-text-faint
   textDim: '#b89880', // matches --color-text-dim
   accent: '#c8965a', // matches --color-accent
