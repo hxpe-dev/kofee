@@ -192,14 +192,14 @@ Some ideas for future versions, contributions welcome:
 - [ ] Public snippet profiles
 - [ ] Snippet aging indicator (cold snippets you haven't used)
 - [ ] VS Code extension
-- [ ] Mobile-friendly layout
-- [ ] Import from local files
+- [x] Mobile-friendly layout
+- [x] Import from local files
 
 ---
 
 ## License
 
-[MIT](LICENSE): free to use, modify, and distribute.
+[MIT](LICENSE) - free to use, modify, and distribute.
 
 ---
 
@@ -213,10 +213,3 @@ Kofee is free and open source. If you find it useful and want to support its dev
 
 Built with ☕ by [hxpe](https://github.com/hxpe-dev)  
 If you enjoy **Kofee**, consider starring the [GitHub repository](https://github.com/hxpe-dev/kofee)!
-
----
-
-## Estimated cost
-
-- Domain (~ $13 / year)
-- Supabase pro plan ($25 / month)

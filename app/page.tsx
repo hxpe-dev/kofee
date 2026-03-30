@@ -49,6 +49,9 @@ export default function Home() {
   const [pushingGist, setPushingGist] = useState(false)
   const [importingGist, setImportingGist] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [mobileView, setMobileView] = useState<'sidebar' | 'editor'>('sidebar')
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
 
   // Auth
   useEffect(() => {
@@ -168,6 +171,7 @@ export default function Home() {
     setLang(s.lang)
     setTags(s.tags)
     setTagInput('')
+    if (isMobile) setMobileView('editor')
   }
 
   // Save
@@ -478,6 +482,7 @@ export default function Home() {
   return (
     <div
       className={styles.app}
+      data-mobile-view={mobileView}
       onDragOver={e => { e.preventDefault(); setDragging(true) }}
       onDragLeave={e => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false)
@@ -505,6 +510,7 @@ export default function Home() {
           setCode('')
           setLang('js')
           setTags([])
+          setMobileView('sidebar')
         }}
         onDownloadAll={downloadAllSnippets}
         onImportFile={() => {
@@ -530,6 +536,12 @@ export default function Home() {
           <div className={styles.snippetView}>
             {/* Top bar */}
             <div className={styles.topbar}>
+              <button
+                className={styles.btnMobileBack}
+                onClick={() => setMobileView('sidebar')}
+              >
+                ← Back
+              </button>
               <input
                 className={styles.titleInput}
                 value={title}
@@ -626,6 +638,9 @@ export default function Home() {
 
             {/* Code editor */}
             <div key={`code-${currentId}`} className={styles.codeAnimate}>
+              <div className={styles.mobileReadOnly}>
+                Best experienced on desktop
+              </div>
               <CodeEditor
                 value={code}
                 lang={lang}
@@ -654,9 +669,15 @@ export default function Home() {
         <div className={styles.brewOverlay}>
           <div className={styles.brewHeader}>
             <span className={styles.brewTitle}>{title}</span>
-            <button className={styles.brewClose} onClick={() => setBrewOpen(false)}>
-              esc · exit brew
-            </button>
+            {isMobile ? (
+              <button className={styles.brewClose} onClick={() => setBrewOpen(false)}>
+                exit brew
+              </button>
+            ) : (
+              <button className={styles.brewClose} onClick={() => setBrewOpen(false)}>
+                esc · exit brew
+              </button>
+            )}           
           </div>
           <CodeEditor
             value={code}
