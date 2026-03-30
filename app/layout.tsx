@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Lora } from 'next/font/google'
 import './globals.css'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora' })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={`${lora.variable} antialiased`}>
         <ErrorBoundary>
           {children}
+          <SpeedInsights />
         </ErrorBoundary>
       </body>
     </html>
