@@ -54,7 +54,9 @@ begin
   end if;
   return new;
 end;
-$$ language plpgsql;
+$$ language plpgsql
+   security definer
+   set search_path = public;
 
 create trigger enforce_snippet_limit
   before insert on snippets
