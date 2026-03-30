@@ -16,7 +16,8 @@
 
 ---
 
-**Kofee** is an open source snippet manager built for developers who care about their tools. Save, tag, search, and publish your code snippets with GitHub Gist integration baked in. Warm aesthetic, keyboard-first, and fast.
+**Kofee** is an open source snippet manager built for developers who care about their tools.  
+Save, tag, search, and publish your code snippets with GitHub Gist integration baked in. Warm aesthetic and fast.
 
 ---
 
