@@ -11,6 +11,7 @@ import { IconDownload, IconSignOut } from './icons'
 interface Props {
   snippets: Snippet[]
   currentId: string | null
+  isGuest: boolean,
   onSelect: (id: string) => void
   onNew: () => void
   onImported: (snippet: { title: string; code: string; lang: string; gist_url: string }) => void
@@ -47,8 +48,8 @@ function timeAgo(ts: string) {
 }
 
 export default function Sidebar({
-  snippets, currentId, onSelect, onNew, onImported, search, onSearch, 
-  activeTag, onTagClick, onLogoClick, onDownloadAll, onImportFile
+  snippets, currentId, isGuest, onSelect, onNew, onImported, search, onSearch, 
+  activeTag, onTagClick, onLogoClick, onDownloadAll, onImportFile, 
 }: Props) {
   const [session, setSession] = useState<Session | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -160,10 +161,17 @@ export default function Sidebar({
                 </button>
                 <button
                   className={styles.avatarMenuSignOut}
-                  onClick={() => supabase.auth.signOut()}
+                  onClick={() => {
+                    if(!isGuest) {
+                      supabase.auth.signOut()
+                    } else {
+                      // Guest: remove ?guest param and go to login
+                      window.location.href = '/'
+                    }
+                  }}
                 >
                   <IconSignOut/>
-                  Sign out
+                  {!isGuest ? 'Sign out' : 'Back to login'}
                 </button>
               </div>
             )}
@@ -246,9 +254,11 @@ export default function Sidebar({
           <button className={styles.btnSecondary} onClick={onImportFile}>
             ↑ Import from file
           </button>
-          <button className={styles.btnSecondary} onClick={() => setImportOpen(true)}>
-            ↓ Import from Gist
-          </button>
+          {!isGuest && (
+            <button className={styles.btnSecondary} onClick={() => setImportOpen(true)}>
+              ↓ Import from Gist
+            </button>
+          )}
         </div>
       </aside>
 

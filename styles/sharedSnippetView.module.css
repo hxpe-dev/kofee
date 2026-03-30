@@ -1,0 +1,64 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 16px;
+}
+
+.topZone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoText {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--color-accent-2);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.dotSeparator {
+  color: var(--color-border-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--color-text);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.expiration {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.tags {
+  background: rgba(200,150,90,0.12);
+  border: 1px solid var(--color-border-2);
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--color-accent);
+}
+
+.save {
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: all 0.2s;
+}

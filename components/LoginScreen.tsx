@@ -30,6 +30,10 @@ export default function LoginScreen() {
         </svg>
         Continue with GitHub
       </button>
+      
+      <button className={styles.btnGuest} onClick={() => window.location.href = '/?guest=true'}>
+        Continue as guest
+      </button>
 
       <p className={styles.note}>
         We use GitHub to sync your snippets and enable one-click Gist publishing.

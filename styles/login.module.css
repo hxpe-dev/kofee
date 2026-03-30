@@ -74,3 +74,19 @@
   text-align: center;
   line-height: 1.7;
 }
+
+.btnGuest {
+  background: transparent;
+  border: none;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btnGuest:hover {
+  color: var(--color-text-dim);
+}
