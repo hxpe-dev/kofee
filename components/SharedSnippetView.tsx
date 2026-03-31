@@ -17,11 +17,13 @@ interface SharedSnippet {
 
 export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet }) {
   const [saved, setSaved] = useState(false)
+  const [saveMsg, setSaveMsg] = useState('Save to my Kofee')
 
   async function saveToAccount() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
+      setSaveMsg('Saving to your account...')
       await supabase.from('snippets').insert({
         user_id: user.id,
         title: snippet.title,
@@ -29,7 +31,9 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
         lang: snippet.lang,
         tags: snippet.tags,
       })
+      setSaveMsg('✓ Saved')
     } else {
+      setSaveMsg('Saving to your guest account...')
       // Save to guest local storage
       const local = getGuestSnippets()
       const s = createGuestSnippet({
@@ -39,6 +43,7 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
         tags: snippet.tags,
       })
       saveGuestSnippets([s, ...local])
+      setSaveMsg('✓ Saved')
     }
 
     setSaved(true)
@@ -81,8 +86,9 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
               color: saved ? 'var(--color-text-faint)' : 'var(--color-accent)',
               cursor: saved ? 'default' : 'pointer',
             }}
+            key={saveMsg}
           >
-            {saved ? '✓ Saved' : 'Save to my Kofee'}
+            {saveMsg}
           </button>
         </div>
       </div>

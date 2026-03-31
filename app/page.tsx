@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { encryptToken } from '@/lib/crypto'
@@ -45,7 +45,6 @@ export default function Home() {
   const [toast, setToast] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [brewOpen, setBrewOpen] = useState(false)
-  const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [langOpen, setLangOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [pushingGist, setPushingGist] = useState(false)
@@ -53,38 +52,99 @@ export default function Home() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [migrateModal, setMigrateModal] = useState(false)
   const [mobileView, setMobileView] = useState<'sidebar' | 'editor'>('sidebar')
+  const [isMobile, setIsMobile] = useState(false)
+  const [isGuest, setIsGuest] = useState(false)
+  
+  const lastSaveId = useRef(0)
+  const lastToken = useRef<string | null>(null)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
+  useEffect(() => {
+    setIsGuest(new URLSearchParams(window.location.search).get('guest') === 'true')
+  }, [])
+  
   // Auth
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true
+
+    async function init() {
+      console.log('[AUTH] init() called')
+      const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('[AUTH] getSession result:', { session, error })
+      if (!mounted) return
       setSession(session)
       setLoading(false)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Verify the user is authentic
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
+    }
+
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[AUTH EVENT]', event)
+        console.log('[AUTH SESSION]', session)
+        if (!mounted) return
+
         setSession(session)
-        if (event === 'SIGNED_IN') {
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('[AUTH] User signed in:', session.user.id)
+          // Show migrate modal if guest data exists
           const local = getGuestSnippets()
-          if (local.length > 0) setMigrateModal(true)
+          console.log('[AUTH] Guest snippets found:', local.length)
+          if (local.length > 0) {
+            setMigrateModal(true)
+          }
         }
-      } else {
-        setSession(null)
+
+        if (
+          session?.user &&
+          session.provider_token &&
+          session.provider_token !== lastToken.current
+        ) {
+          lastToken.current = session.provider_token
+
+          console.log('[AUTH] Provider token detected (new)')
+
+          try {
+            const encrypted = await encryptToken(session.provider_token)
+
+            console.log('[AUTH] Token encrypted, saving...')
+
+            await supabase.from('user_tokens').upsert({
+              user_id: session.user.id,
+              github_token: encrypted,
+              updated_at: new Date().toISOString(),
+            })
+
+            console.log('[AUTH] Token saved successfully')
+          } catch (err) {
+            console.error('[AUTH] Token save failed:', err)
+            showToast('Failed to store GitHub token')
+          }
+        }
+
+        if (event === 'SIGNED_OUT') {
+          console.log('[AUTH] User signed out')
+          setSession(null)
+        }
+
+        setLoading(false)
       }
-      
-      if (session?.provider_token && user?.id) {
-        const encrypted = await encryptToken(session.provider_token)
-        await supabase.from('user_tokens').upsert({
-          user_id: user.id,
-          github_token: encrypted,
-          updated_at: new Date().toISOString(),
-        })
-      }
-    })
-    return () => subscription.unsubscribe()
+    )
+
+    return () => {
+      console.log('[AUTH] cleanup')
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Offline/online detection since it is pretty bad to make changes and discover you were offline ;-;
@@ -108,51 +168,44 @@ export default function Home() {
     const handler = (e: KeyboardEvent) => {
       const active = document.activeElement as HTMLElement
 
-      // Enter in title input -> focus code editor
-      if (e.key === 'Enter' && active?.classList.contains(styles.titleInput)) {
-        e.preventDefault()
-        const editor = document.querySelector<HTMLElement>('.cm-content')
-        editor?.focus()
-        return
-      }
+      const isTyping =
+        ['INPUT', 'TEXTAREA'].includes(active?.tagName) ||
+        active?.classList.contains('cm-content')
 
-      // Ignore shortcuts when typing in an input/textarea
-      const isTyping = ['INPUT', 'TEXTAREA'].includes(active?.tagName)
-        || active?.classList.contains('cm-content')
-      if (isTyping) return
+      // Allow normal typing
+      if (isTyping && !(e.metaKey || e.ctrlKey)) return
 
-      // N -> new snippet
-      if (e.key === 'n' && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault()
-        newSnippet()
-        return
-      }
-
-      // S -> force save current snippet
-      if (e.key === 's' && !e.metaKey && !e.ctrlKey) {
+      // CMD/CTRL + S
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault()
         if (currentId) saveSnippet(currentId, { title, code, lang, tags })
         return
       }
 
-      // B -> brew mode
-      if (e.key === 'b' && !e.metaKey && !e.ctrlKey) {
+      // CMD/CTRL + N
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault()
-        if (currentId) setBrewOpen(v => !v)
+        newSnippet()
         return
       }
 
-      // Escape -> exit brew mode (when in brew mode)
-      if (e.key === 'Escape' && brewOpen) {
-        setBrewOpen(false) 
+      // Brew mode toggle
+      if (e.key === 'b' && !e.metaKey && !e.ctrlKey && currentId) {
+        e.preventDefault()
+        setBrewOpen(v => !v)
         return
       }
 
-      // Escape -> deselect snippet (when not in brew mode)
-      if (e.key === 'Escape' && !brewOpen) {
-        setCurrentId(null)
-        setTitle(''); setCode(''); setLang('js'); setTags([])
-        return
+      if (e.key === 'Escape') {
+        if (brewOpen) {
+          setBrewOpen(false)
+        } else {
+          setCurrentId(null)
+          setTitle('')
+          setCode('')
+          setLang('js')
+          setTags([])
+        }
       }
     }
 
@@ -168,27 +221,45 @@ export default function Home() {
     return () => document.removeEventListener('click', handler)
   }, [langOpen])
 
+  // Timer cleanup in case component unmounts
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
+    }
+  }, [])
+
   // Load snippets
-  const loadSnippets = useCallback(async (retries = 2) => {
+  const loadSnippets = useCallback(async () => {
     if (!session?.user?.id) {
       setSnippets(getGuestSnippets())
       return
     }
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.id) return
-      const { data, error } = await supabase
-        .from('snippets')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-      if (error) throw error
-      if (data) setSnippets(data)
-    } catch (e) {
-      if (retries > 0) {
-        setTimeout(() => loadSnippets(retries - 1), 1500)
-      } else {
-        showToast('Failed to load snippets, check your connection')
+
+    let attempts = 0
+
+    while (attempts < 3) {
+      try {
+        const { data, error } = await supabase
+          .from('snippets')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('updated_at', { ascending: false })
+
+        if (error) throw error
+
+        if (data) {
+          setSnippets(data)
+          return
+        }
+      } catch (e) {
+        attempts++
+        if (attempts >= 3) {
+          showToast('Failed to load snippets')
+          return
+        }
+        await new Promise(res => setTimeout(res, 1000))
       }
     }
   }, [session?.user?.id])
@@ -212,109 +283,158 @@ export default function Home() {
 
   // Save
   async function saveSnippet(id: string, patch: Partial<Snippet>) {
+    const saveId = ++lastSaveId.current
     setSaving(true)
-    const slowTimer = setTimeout(() => showToast('Saving is taking longer than usual...'), 3000)
 
-    if (!session?.user?.id) {
-      // Guest, save to localStorage
-      const updated = snippets.map(s =>
-        s.id === id ? { ...s, ...patch, updated_at: new Date().toISOString() } : s
+    const slowTimer = setTimeout(() => {
+      showToast('Saving is taking longer than usual...')
+    }, 3000)
+
+    try {
+      const updatedAt = new Date().toISOString()
+
+      if (!session?.user?.id) {
+        const updated = snippets.map(s =>
+          s.id === id ? { ...s, ...patch, updated_at: updatedAt } : s
+        )
+
+        if (saveId !== lastSaveId.current) return
+
+        saveGuestSnippets(updated)
+        setSnippets(updated)
+        return
+      }
+
+      const { error } = await supabase
+        .from('snippets')
+        .update({
+          ...patch,
+          updated_at: updatedAt,
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      if (saveId !== lastSaveId.current) return
+
+      // Optimistic UI update
+      setSnippets(prev =>
+        prev.map(s =>
+          s.id === id ? { ...s, ...patch, updated_at: updatedAt } : s
+        )
       )
-      saveGuestSnippets(updated)
-      setSnippets(updated)
-      clearTimeout(slowTimer)
-      setSaving(false)
-      return
-    }
 
-    await supabase
-      .from('snippets')
-      .update({ ...patch, updated_at: new Date().toISOString() })
-      .eq('id', id)
-    clearTimeout(slowTimer)
-    await loadSnippets()
-    setSaving(false)
+    } catch (err) {
+      console.error(err)
+      if (saveId === lastSaveId.current) {
+        showToast('Failed to save snippet')
+      }
+    } finally {
+      clearTimeout(slowTimer)
+      if (saveId === lastSaveId.current) {
+        setSaving(false)
+      }
+    }
   }
 
   // Handle file import
   async function handleFileImport(file: File) {
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-    const extToLang: Record<string, string> = {
-      js: 'js',
-      jsx: 'js',
-      mjs: 'js',
-      ts: 'ts',
-      tsx: 'ts',
-      py: 'py',
-      css: 'css',
-      scss: 'css',
-      html: 'html',
-      htm: 'html',
-      json: 'json',
-      sh: 'bash',
-      bash: 'bash',
-      zsh: 'bash',
-      sql: 'sql',
-    }
-    const code = await file.text()
-    const lang = extToLang[ext] ?? 'other'
-    const title = file.name.replace(/\.[^.]+$/, '') // strip extension
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
 
-    if (!session?.user?.id) {
-      const s = createGuestSnippet({ title, code, lang })
-      const updated = [s, ...snippets]
-      saveGuestSnippets(updated)
-      setSnippets(updated)
-      setCurrentId(s.id)
-      setTitle(s.title)
-      setCode(s.code)
-      setLang(s.lang)
-      setTags([])
-      setMobileView('editor')
-      showToast(`Imported ${file.name}`)
-      return
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.id) return
-
-    const { data, error } = await supabase.from('snippets').insert({
-      user_id: user.id,
-      title,
-      code,
-      lang,
-      tags: [],
-    }).select().single()
-
-    if (error) {
-      if (error.message.includes('Snippet limit reached')) {
-        showToast('Snippet limit reached (100 max)')
-      } else {
-        showToast('Failed to create snippet')
+      const extToLang: Record<string, string> = {
+        js: 'js',
+        jsx: 'js',
+        mjs: 'js',
+        ts: 'ts',
+        tsx: 'ts',
+        py: 'py',
+        css: 'css',
+        scss: 'css',
+        html: 'html',
+        htm: 'html',
+        json: 'json',
+        sh: 'bash',
+        bash: 'bash',
+        zsh: 'bash',
+        sql: 'sql',
       }
-      return
-    }
 
-    if (data) {
+      const code = await file.text()
+      const lang = extToLang[ext] ?? 'other'
+      const title = file.name.replace(/\.[^.]+$/, '')
+
+      if (!session?.user?.id) {
+        const s = createGuestSnippet({ title, code, lang })
+
+        const updated = [s, ...snippets]
+        saveGuestSnippets(updated)
+        setSnippets(updated)
+
+        setCurrentId(s.id)
+        setTitle(s.title)
+        setCode(s.code)
+        setLang(s.lang)
+        setTags([])
+
+        setMobileView('editor')
+
+        showToast(`Imported ${file.name}`)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('snippets')
+        .insert({
+          user_id: session.user.id,
+          title,
+          code,
+          lang,
+          tags: [],
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      if (!data) throw new Error('Insert failed')
+
       await loadSnippets()
+
       setCurrentId(data.id)
       setTitle(data.title)
       setCode(data.code)
       setLang(data.lang)
       setTags([])
+
       setMobileView('editor')
+
       showToast(`Imported ${file.name}`)
+    } catch (err: any) {
+      console.error(err)
+
+      if (err.message?.includes('Snippet limit reached')) {
+        showToast('Snippet limit reached (100 max)')
+      } else {
+        showToast('Failed to import file')
+      }
     }
   }
 
   // Handle any change in the snippet (title, code, lang) with automatic save after a short delay
   function handleFieldChange(field: string, value: string) {
     if (field === 'title') setTitle(value)
-    if (field === 'code')  setCode(value)
-    if (field === 'lang')  setLang(value)
+    if (field === 'code') setCode(value)
+    if (field === 'lang') setLang(value)
+
     if (!currentId) return
-    if (saveTimer) clearTimeout(saveTimer)
-    setSaveTimer(setTimeout(() => saveSnippet(currentId, { [field]: value }), 800))
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      saveSnippet(currentId, { [field]: value })
+    }, 800)
   }
 
   // New snippet
@@ -337,10 +457,13 @@ export default function Home() {
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.id) return
+    // const { data: { user } } = await supabase.auth.getUser()
+    // if (!user?.id) return
+    const userId = session?.user?.id
+    if (!userId) return
+
     const { data, error } = await supabase.from('snippets').insert({
-      user_id: user.id,
+      user_id: userId,
       title: 'Untitled snippet',
       code: '',
       lang: 'js',
@@ -378,113 +501,145 @@ export default function Home() {
   async function deleteSnippet() {
     if (!currentId) return
 
-    if (!session?.user?.id) {
-      const updated = snippets.filter(s => s.id !== currentId)
-      saveGuestSnippets(updated)
-      setSnippets(updated)
-      setCurrentId(null)
-      setTitle(''); setCode(''); setLang('js'); setTags([])
-      showToast('Snippet deleted')
-      return
-    }
+    try {
+      if (!session?.user?.id) {
+        const updated = snippets.filter(s => s.id !== currentId)
+        saveGuestSnippets(updated)
+        setSnippets(updated)
+        setCurrentId(null)
+        setTitle('')
+        setCode('')
+        setLang('js')
+        setTags([])
+        showToast('Snippet deleted')
+        return
+      }
 
-    await supabase.from('snippets').delete().eq('id', currentId)
-    setCurrentId(null)
-    setTitle('')
-    setCode('')
-    setLang('js')
-    setTags([])
-    await loadSnippets()
-    showToast('Snippet deleted')
+      const { error } = await supabase
+        .from('snippets')
+        .delete()
+        .eq('id', currentId)
+
+      if (error) throw error
+
+      setCurrentId(null)
+      setTitle('')
+      setCode('')
+      setLang('js')
+      setTags([])
+
+      await loadSnippets()
+
+      showToast('Snippet deleted')
+    } catch (err) {
+      console.error(err)
+      showToast('Failed to delete snippet')
+    }
   }
 
   // Import from Gist
-  async function handleImported(snippet: { title: string; code: string; lang: string; gist_url: string }) {
-    if (!session?.user?.id) {
-      const s = createGuestSnippet({
-        title: snippet.title,
-        code: snippet.code,
-        lang: snippet.lang,
-        gist_url: snippet.gist_url,
-      })
-      const updated = [s, ...snippets]
-      saveGuestSnippets(updated)
-      setSnippets(updated)
-      setCurrentId(s.id)
-      setTitle(s.title)
-      setCode(s.code)
-      setLang(s.lang)
-      setTags([])
-      showToast('Gist imported')
-      return
-    }
+  async function handleImported(snippet: {
+    title: string
+    code: string
+    lang: string
+    gist_url: string
+  }) {
+    try {
+      if (!session?.user?.id) {
+        const s = createGuestSnippet({
+          title: snippet.title,
+          code: snippet.code,
+          lang: snippet.lang,
+          gist_url: snippet.gist_url,
+        })
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.id || importingGist) return
-    setImportingGist(true)
-    const { data, error } = await supabase.from('snippets').insert({
-      user_id: user.id,
-      title: snippet.title,
-      code: snippet.code,
-      lang: snippet.lang,
-      tags: [],
-      gist_url: snippet.gist_url,
-    }).select().single()
+        const updated = [s, ...snippets]
+        saveGuestSnippets(updated)
+        setSnippets(updated)
 
-    if (error) {
-      if (error.message.includes('Snippet limit reached')) {
-        showToast('Snippet limit reached (100 max)')
-      } else {
-        showToast('Failed to create snippet')
+        setCurrentId(s.id)
+        setTitle(s.title)
+        setCode(s.code)
+        setLang(s.lang)
+        setTags([])
+
+        showToast('Gist imported')
+        return
       }
-      return
-    }
 
-    if (data) {
+      if (importingGist) return
+
+      setImportingGist(true)
+
+      const { data, error } = await supabase
+        .from('snippets')
+        .insert({
+          user_id: session.user.id,
+          title: snippet.title,
+          code: snippet.code,
+          lang: snippet.lang,
+          tags: [],
+          gist_url: snippet.gist_url,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      if (!data) throw new Error('Insert failed')
+
       await loadSnippets()
+
       setCurrentId(data.id)
       setTitle(data.title)
       setCode(data.code)
       setLang(data.lang)
       setTags([])
-      showToast('Gist imported')
-    }
 
-    setImportingGist(false)
+      showToast('Gist imported')
+    } catch (err: any) {
+      console.error(err)
+
+      if (err.message?.includes('Snippet limit reached')) {
+        showToast('Snippet limit reached (100 max)')
+      } else {
+        showToast('Failed to import Gist')
+      }
+    } finally {
+      setImportingGist(false)
+    }
   }
 
   // Migrate guest snippets to user account on login
   async function migrateGuestSnippets() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.id) return
+    if (!session?.user?.id) return
 
-    const local = getGuestSnippets()
-    let successCount = 0
-      
-    for (const s of local) {
-      const { error } = await supabase.from('snippets').insert({
-        user_id: user.id,
+    try {
+      const local = getGuestSnippets()
+
+      const payload = local.map(s => ({
+        user_id: session.user.id,
         title: s.title,
         code: s.code,
         lang: s.lang,
         tags: s.tags,
-      })
-      if (!error) successCount++
-    }
+      }))
 
-    if (successCount === local.length) {
+      const { error } = await supabase
+        .from('snippets')
+        .insert(payload)
+
+      if (error) throw error
+
       clearGuestSnippets()
-      showToast(`${successCount} snippet${successCount > 1 ? 's' : ''} migrated!`)
-    } else if (successCount > 0) {
-      // Partial success, only remove the ones that were migrated 
-      // TODO
-      showToast(`${successCount}/${local.length} snippets migrated, some failed`)
-    } else {
+
+      showToast(`${local.length} snippet${local.length > 1 ? 's' : ''} migrated!`)
+      await loadSnippets()
+      setMigrateModal(false)
+
+    } catch (err) {
+      console.error(err)
       showToast('Migration failed, your local snippets are still safe')
     }
-
-    await loadSnippets()
-    setMigrateModal(false)
   }
 
   // Tags
@@ -506,63 +661,77 @@ export default function Home() {
   // Push to Gist
   async function pushToGist() {
     if (!currentId || pushingGist) return
+
     setPushingGist(true)
     showToast('Pushing to Gist...')
-    const res = await fetch('/api/gist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, code, lang }),
-    })
-    const data = await res.json()
-    if (data.url) {
+
+    try {
+      const res = await fetch('/api/gist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, code, lang }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create Gist')
+      }
+
+      if (!data.url) {
+        throw new Error('No URL returned from Gist')
+      }
+
       await saveSnippet(currentId, { gist_url: data.url })
+
       showToast('Gist created, opening...')
       window.open(data.url, '_blank')
-    } else {
-      if (data.error) {
-        showToast(data.error)
-      } else {
-        showToast('Failed to create Gist')
-      }
+    } catch (err: any) {
+      console.error(err)
+      showToast(err.message || 'Failed to create Gist')
+    } finally {
+      setPushingGist(false)
     }
-    setPushingGist(false)
   }
 
   // Share snippet (sharing)
   async function shareSnippet() {
     if (!currentId || !session?.user?.id) return
+
     showToast('Creating share link...')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.id) return
+    try {
+      const { data, error } = await supabase
+        .from('shared_snippets')
+        .insert({
+          user_id: session.user.id,
+          title,
+          code,
+          lang,
+          tags,
+        })
+        .select()
+        .single()
 
-    const { data, error } = await supabase
-      .from('shared_snippets')
-      .insert({
-        user_id: user.id,
-        title: title,
-        code: code,
-        lang: lang,
-        tags: tags,
-      })
-      .select()
-      .single()
+      if (error) throw error
+      if (!data) throw new Error('No share data returned')
 
-    if (error || !data) {
+      const url = `${window.location.origin}/s/${data.id}`
+
+      await navigator.clipboard.writeText(url)
+
+      showToast('Share link copied (expires in 7 days)')
+    } catch (err) {
+      console.error(err)
       showToast('Failed to create share link')
-      return
     }
-
-    const url = `${window.location.origin}/s/${data.id}`
-    await navigator.clipboard.writeText(url)
-    showToast('Share link copied (expires in 7 days)')
   }
 
   // Copy
   function copyCode() {
     navigator.clipboard.writeText(code)
     showToast('Copied to clipboard')
-  }
+  } 
 
   // Download single
   function downloadSnippet() {
@@ -627,17 +796,29 @@ export default function Home() {
   function showToast(msg: string) {
     setToast(msg)
     setToastVisible(true)
-    setTimeout(() => setToastVisible(false), 2000) // start fade out
-    setTimeout(() => setToast(''), 2300) // remove after fade
+
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current)
+    }
+
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastVisible(false)
+      setTimeout(() => setToast(''), 300)
+    }, 2000)
   }
 
   // Filter snippets based on search (in title and in code) and active tag
-  const filtered = snippets
-    .filter(s => !activeTag || s.tags.includes(activeTag))
-    .filter(s => !search
-      || s.title.toLowerCase().includes(search.toLowerCase())
-      || s.code.toLowerCase().includes(search.toLowerCase())
-    )
+  const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase()
+
+    return snippets
+      .filter(s => !activeTag || s.tags.includes(activeTag))
+      .filter(s =>
+        !searchLower ||
+        s.title.toLowerCase().includes(searchLower) ||
+        s.code.toLowerCase().includes(searchLower)
+      )
+  }, [snippets, activeTag, search])
 
   const currentSnippet = snippets.find(s => s.id === currentId)
 
@@ -649,11 +830,9 @@ export default function Home() {
       </div>
     )
   } 
-  if (!session) {
-    const isGuest = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('guest') === 'true'
-    if (!isGuest) return <LoginScreen />
+  if (!session && !isGuest) {
+    return <LoginScreen />
   }
-
 
   // throw new Error('Test error')
 
@@ -676,7 +855,7 @@ export default function Home() {
       <Sidebar
         snippets={filtered}
         currentId={currentId}
-        isGuest={typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('guest') === 'true'}
+        isGuest={isGuest}
         onSelect={selectSnippet}
         onNew={newSnippet}
         onImported={handleImported}

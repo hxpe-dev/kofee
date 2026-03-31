@@ -58,7 +58,13 @@ export default function Sidebar({
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_, session) => setSession(session)
+    )
+
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+
+    return () => subscription.unsubscribe()
   }, [])
 
   // Close avatar menu on outside click
