@@ -76,9 +76,9 @@ export default function Home() {
     let mounted = true
 
     async function init() {
-      console.log('[AUTH] init() called')
+      // console.log('[AUTH] init() called')
       const { data: { session }, error } = await supabase.auth.getSession()
-      console.log('[AUTH] getSession result:', { session, error })
+      // console.log('[AUTH] getSession result:', { session, error })
       if (!mounted) return
       setSession(session)
       setLoading(false)
@@ -88,17 +88,17 @@ export default function Home() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[AUTH EVENT]', event)
-        console.log('[AUTH SESSION]', session)
+        // console.log('[AUTH EVENT]', event)
+        // console.log('[AUTH SESSION]', session)
         if (!mounted) return
 
         setSession(session)
 
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('[AUTH] User signed in:', session.user.id)
+          // console.log('[AUTH] User signed in:', session.user.id)
           // Show migrate modal if guest data exists
           const local = getGuestSnippets()
-          console.log('[AUTH] Guest snippets found:', local.length)
+          // console.log('[AUTH] Guest snippets found:', local.length)
           if (local.length > 0) {
             setMigrateModal(true)
           }
@@ -111,12 +111,12 @@ export default function Home() {
         ) {
           lastToken.current = session.provider_token
 
-          console.log('[AUTH] Provider token detected (new)')
+          // console.log('[AUTH] Provider token detected (new)')
 
           try {
             const encrypted = await encryptToken(session.provider_token)
 
-            console.log('[AUTH] Token encrypted, saving...')
+            // console.log('[AUTH] Token encrypted, saving...')
 
             await supabase.from('user_tokens').upsert({
               user_id: session.user.id,
@@ -124,15 +124,15 @@ export default function Home() {
               updated_at: new Date().toISOString(),
             })
 
-            console.log('[AUTH] Token saved successfully')
+            // console.log('[AUTH] Token saved successfully')
           } catch (err) {
-            console.error('[AUTH] Token save failed:', err)
+            // console.error('[AUTH] Token save failed:', err)
             showToast('Failed to store GitHub token')
           }
         }
 
         if (event === 'SIGNED_OUT') {
-          console.log('[AUTH] User signed out')
+          // console.log('[AUTH] User signed out')
           setSession(null)
         }
 
@@ -141,7 +141,7 @@ export default function Home() {
     )
 
     return () => {
-      console.log('[AUTH] cleanup')
+      // console.log('[AUTH] cleanup')
       mounted = false
       subscription.unsubscribe()
     }
@@ -167,6 +167,13 @@ export default function Home() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const active = document.activeElement as HTMLElement
+
+      if (e.key === 'Enter' && active?.classList.contains(styles.titleInput)) {
+        e.preventDefault()
+        const editor = document.querySelector<HTMLElement>('.cm-content')
+        editor?.focus()
+        return
+      }
 
       const isTyping =
         ['INPUT', 'TEXTAREA'].includes(active?.tagName) ||

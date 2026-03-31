@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { Snippet } from '@/types/snippet'
@@ -56,6 +56,7 @@ export default function Sidebar({
   const [importOpen, setImportOpen] = useState(false)
   const [visibleSnippets, setVisibleSnippets] = useState<Snippet[]>(snippets)
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set())
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -70,7 +71,14 @@ export default function Sidebar({
   // Close avatar menu on outside click
   useEffect(() => {
     if (!menuOpen) return
-    const handler = () => setMenuOpen(false)
+
+    const handler = (e: MouseEvent) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [menuOpen])
@@ -129,7 +137,7 @@ export default function Sidebar({
             </div>
 
             {menuOpen && (
-              <div className={styles.avatarMenu} onClick={e => e.stopPropagation()}>
+              <div ref={menuRef} className={styles.avatarMenu} onClick={e => e.stopPropagation()}>
                 <div className={styles.avatarMenuInfo}>
                   <div className={styles.avatarMenuName}>{userName}</div>
                   <div className={styles.avatarMenuEmail}>{session?.user?.email}</div>
@@ -160,7 +168,10 @@ export default function Sidebar({
                 </div>
                 <button
                   className={styles.avatarMenuDownload}
-                  onClick={() => { onDownloadAll(); setMenuOpen(false) }}
+                  onClick={() => { 
+                    onDownloadAll()
+                    setMenuOpen(false)
+                  }}
                 >
                   <IconDownload/>
                   Download all
