@@ -1,6 +1,6 @@
 <div align="center">
 
-# ☕ Kofee
+# ☕ Kofee 
 
 **A minimal, beautiful code snippet manager for developers.**
 
