@@ -32,6 +32,8 @@ Save, tag, search, and publish your code snippets with GitHub Gist integration b
 - **Auto-save**: your work is saved automatically as you type
 - **Keyboard shortcuts**: go fast brrr
 - **Login with GitHub**: no passwords, no forms
+- **Guest mode**: for people that don't want to login
+- **Snippet sharing**: share snippets with others
 - **Warm, minimal UI**: dark coffee-toned theme built
 
 ---
