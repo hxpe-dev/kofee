@@ -6,8 +6,8 @@ const csp = `
   script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ''} https://vercel.analytics.com;
   style-src 'self' 'unsafe-inline';
   font-src 'self';
-  img-src 'self' data: https://kofee.dev;
-  connect-src 'self' https://fkgxsgydromxcdivevet.supabase.co https://enough-tomcat-83590.upstash.io https://gist.githubusercontent.com https://avatars.githubusercontent.com;
+  img-src 'self' data: https://kofee.dev https://avatars.githubusercontent.com;
+  connect-src 'self' https://fkgxsgydromxcdivevet.supabase.co https://enough-tomcat-83590.upstash.io https://gist.githubusercontent.com;
   frame-ancestors 'none';
 `;
 
