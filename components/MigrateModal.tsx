@@ -12,7 +12,7 @@ export default function MigrateModal({ count, onMigrate, onDiscard }: Props) {
   return (
     <div className={styles.overlay} onClick={onDiscard}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.title}>Welcome back ☕</div>
+        <div className={styles.title}>Migrate local snippets</div>
         <div className={styles.subtitle}>
           You have {count} local snippet{count > 1 ? 's' : ''} saved as a guest.
           Would you like to import them into your account?

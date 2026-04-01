@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { Snippet } from '@/types/snippet'
 import ImportModal from './ImportModal'
 import styles from '@/styles/sidebar.module.css'
-import { IconDownload, IconSignOut } from './icons'
+import { IconDoubleArrows, IconDownload, IconSignOut } from './icons'
+import { getGuestSnippets } from '@/lib/guestSnippets'
 
 interface Props {
   snippets: Snippet[]
@@ -22,6 +23,7 @@ interface Props {
   onLogoClick: () => void
   onDownloadAll: () => void
   onImportFile: () => void
+  onMigrateGuest: () => void
 }
 
 // Maps lang key -> CSS variable color
@@ -49,13 +51,14 @@ function timeAgo(ts: string) {
 
 export default function Sidebar({
   snippets, currentId, isGuest, onSelect, onNew, onImported, search, onSearch, 
-  activeTag, onTagClick, onLogoClick, onDownloadAll, onImportFile, 
+  activeTag, onTagClick, onLogoClick, onDownloadAll, onImportFile, onMigrateGuest,
 }: Props) {
   const [session, setSession] = useState<Session | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [visibleSnippets, setVisibleSnippets] = useState<Snippet[]>(snippets)
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set())
+  const [hasLocalSnippets, setHasLocalSnippets] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -103,6 +106,13 @@ export default function Sidebar({
       setExitingIds(new Set())
     }, 220)
   }, [snippets])
+
+  // Check for local snippets when the session changes
+  useEffect(() => {
+    if (session) {
+      setHasLocalSnippets(getGuestSnippets().length > 0)
+    }
+  }, [session])
 
   const allTags = [...new Set(snippets.flatMap(s => s.tags))]
   const avatarUrl = session?.user?.user_metadata?.avatar_url
@@ -176,6 +186,18 @@ export default function Sidebar({
                   <IconDownload/>
                   Download all
                 </button>
+                {session && hasLocalSnippets && (
+                  <button
+                    className={styles.avatarMenuDownload}
+                    onClick={() => {
+                      onMigrateGuest()
+                      setMenuOpen(false)
+                    }}
+                  >
+                    <IconDoubleArrows/>
+                    Import local snippets
+                  </button>
+                )}
                 <button
                   className={styles.avatarMenuSignOut}
                   onClick={() => {

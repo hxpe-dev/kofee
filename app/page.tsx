@@ -889,6 +889,7 @@ export default function Home() {
           }
           input.click()
         }}
+        onMigrateGuest={() => setMigrateModal(true)}
       />
 
       <main className={styles.editorArea}>
