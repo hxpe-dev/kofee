@@ -9,7 +9,7 @@
 </div>
 
 > [!NOTE]
-> 🌱 **Kofee is just getting started.**  
+> **Kofee is just getting started.**  
 > We're running on free-tier infrastructure while we find our footing.  
 > If you try it and enjoy it, consider [supporting the project](https://ko-fi.com/hxpedev), it directly helps us scale beyond the free tier and keep building.  
 > **Feedback**, **bug reports**, and **stars** on the repo mean just as much. ☕
@@ -59,6 +59,7 @@ Save, tag, search, and publish your code snippets with GitHub Gist integration b
 
 - Node.js
 - A [Supabase](https://supabase.com) account (free)
+- An [Upstash](https://upstash.com) account (free)
 - A [GitHub OAuth App](https://github.com/settings/developers)
 
 ### 1. Clone the repo
@@ -200,9 +201,12 @@ Some ideas for future versions, contributions welcome:
 
 ---
 
-## License
+## License & Commercial Use
 
-[MIT](LICENSE) - free to use, modify, and distribute.
+Kofee is open-source under the [MIT License](LICENSE) You are free to use, modify, and contribute.  
+
+⚠️ While the license allows commercial use legally, please **do not deploy a competing service** based on Kofee without permission.  
+Your support, contributions, and feedback are what help Kofee grow!
 
 ---
 
