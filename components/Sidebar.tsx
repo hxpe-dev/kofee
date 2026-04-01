@@ -154,8 +154,12 @@ export default function Sidebar({
             {menuOpen && (
               <div ref={menuRef} className={styles.avatarMenu} onClick={e => e.stopPropagation()}>
                 <div className={styles.avatarMenuInfo}>
-                  <div className={styles.avatarMenuName}>{userName}</div>
-                  <div className={styles.avatarMenuEmail}>{session?.user?.email}</div>
+                  <div className={styles.avatarMenuName}>
+                    {isGuest ? "Guest" : userName}
+                  </div>
+                  <div className={styles.avatarMenuEmail}>
+                    {session?.user?.email ?? "Sign in to get more features!"}
+                  </div>
                 </div>
                 <div className={styles.avatarMenuLinks}>
                   <a
