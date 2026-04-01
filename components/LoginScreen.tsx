@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabase'
 import styles from '@/styles/login.module.css'
-import { IconGithub } from './icons'
+import { IconGist, IconGithub, IconKofi } from './icons'
 
 export default function LoginScreen() {
   async function signInWithGithub() {
@@ -17,6 +17,26 @@ export default function LoginScreen() {
 
   return (
     <div className={styles.page}>
+      {/* Top-right corner buttons */}
+      <div className={styles.topRight}>
+        <a
+          href="https://github.com/hxpe-dev/kofee"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.iconButton}
+        >
+          <IconGist/>
+        </a>
+        <a
+          href="https://ko-fi.com/hxpedev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.iconButton}
+        >
+          <IconKofi/>
+        </a>
+      </div>
+
       <div className={styles.logoGroup}>
         <div className={styles.logo}>
           <div className={styles.logoDot} />
