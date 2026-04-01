@@ -1,33 +1,19 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { decryptToken } from '@/lib/crypto'
 import { ratelimit } from '@/lib/ratelimit'
+import { getUserFromRequest } from '@/lib/utils'
 
 export async function POST(req: Request) {
-  const cookieStore = await cookies()
-
-  const supabase = createServerClient(
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        },
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const user = await getUserFromRequest(req, supabase)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { success } = await ratelimit.limit(session.user.id)
+  const { success } = await ratelimit.limit(user.id)
   if (!success) {
     return NextResponse.json({ error: 'Too many requests, slow down' }, { status: 429 })
   }
@@ -35,7 +21,7 @@ export async function POST(req: Request) {
   const { data: tokenRow } = await supabase
     .from('user_tokens')
     .select('github_token')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!tokenRow?.github_token) {
@@ -87,21 +73,35 @@ export async function POST(req: Request) {
 function detectLang(filename: string, githubLang: string | null): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? ''
   const extMap: Record<string, string> = {
-    js: 'js', jsx: 'js', mjs: 'js', cjs: 'js',
-    ts: 'ts', tsx: 'ts',
+    js: 'js',
+    jsx: 'js',
+    mjs: 'js',
+    cjs: 'js',
+    ts: 'ts',
+    tsx: 'ts',
     py: 'py',
-    css: 'css', scss: 'css',
-    html: 'html', htm: 'html',
+    css: 'css',
+    scss: 'css',
+    html: 'html',
+    htm: 'html',
     json: 'json',
-    sh: 'bash', bash: 'bash', zsh: 'bash',
+    sh: 'bash',
+    bash: 'bash',
+    zsh: 'bash',
     sql: 'sql',
   }
   if (extMap[ext]) return extMap[ext]
 
   const langMap: Record<string, string> = {
-    JavaScript: 'js', TypeScript: 'ts', Python: 'py',
-    CSS: 'css', HTML: 'html', JSON: 'json',
-    Shell: 'bash', Bash: 'bash', SQL: 'sql',
+    JavaScript: 'js',
+    TypeScript: 'ts',
+    Python: 'py',
+    CSS: 'css',
+    HTML: 'html',
+    JSON: 'json',
+    Shell: 'bash',
+    Bash: 'bash',
+    SQL: 'sql',
   }
   return langMap[githubLang ?? ''] ?? 'other'
 }

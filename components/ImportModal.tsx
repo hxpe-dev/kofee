@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from '@/styles/importModal.module.css'
+import { supabase } from '@/lib/supabase'
 
 const LANG_COLORS: Record<string, string> = {
   js: 'var(--lang-js)',
@@ -43,10 +44,15 @@ export default function ImportModal({ onImported, onClose }: Props) {
     setImporting(true)
     setImportError('')
 
+    const { data: { session } } = await supabase.auth.getSession()
+
     const res = await fetch('/api/gist/import', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gistUrl: gistUrl.trim() }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ gistUrl }),
     })
 
     const data = await res.json()
