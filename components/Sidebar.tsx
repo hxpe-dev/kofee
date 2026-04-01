@@ -15,7 +15,12 @@ interface Props {
   isGuest: boolean,
   onSelect: (id: string) => void
   onNew: () => void
-  onImported: (snippet: { title: string; code: string; lang: string; gist_url: string }) => void
+  onImported: (snippet: {
+    title: string
+    code: string
+    lang: string
+    gist_url: string
+  }) => void
   search: string
   onSearch: (v: string) => void
   activeTag: string | null

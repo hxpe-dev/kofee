@@ -1,10 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import type { Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
-import { encryptToken } from '@/lib/crypto'
-import { Snippet } from '@/types/snippet'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import LoginScreen from '@/components/LoginScreen'
 import Sidebar from '@/components/Sidebar'
 import CodeEditor from '@/components/CodeEditor'
@@ -12,8 +8,12 @@ import styles from '@/styles/page.module.css'
 import { strToU8, zip } from 'fflate'
 import type { AsyncZippable, GzipOptions } from 'fflate'
 import { IconExpand, IconDownload, IconCopy, IconTrash, IconGist, IconShare } from '@/components/icons'
-import { getGuestSnippets, saveGuestSnippets, clearGuestSnippets, createGuestSnippet } from '@/lib/guestSnippets'
+import { getGuestSnippets } from '@/lib/guestSnippets'
 import MigrateModal from '@/components/MigrateModal'
+import { useToast } from '@/hooks/useToast'
+import { useMobileDetect } from '@/hooks/useMobileDetect'
+import { useAuth } from '@/hooks/useAuth'
+import { useSnippets } from '@/hooks/useSnippets'
 
 const LANGS = ['js','ts','py','css','bash','sql','html','json','other']
 
@@ -30,122 +30,34 @@ const EXTENSIONS: Record<string, string> = {
 }
 
 export default function Home() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [snippets, setSnippets] = useState<Snippet[]>([])
-  const [currentId, setCurrentId] = useState<string | null>(null)
+  const { toast, toastVisible, showToast } = useToast()
+  const { isMobile, mobileView, setMobileView } = useMobileDetect()
   const [search, setSearch] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [title, setTitle] = useState('')
-  const [code, setCode] = useState('')
-  const [lang, setLang] = useState('js')
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState('')
-  const [toastVisible, setToastVisible] = useState(false)
   const [brewOpen, setBrewOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
-  const [pushingGist, setPushingGist] = useState(false)
-  const [importingGist, setImportingGist] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [migrateModal, setMigrateModal] = useState(false)
-  const [mobileView, setMobileView] = useState<'sidebar' | 'editor'>('sidebar')
-  const [isMobile, setIsMobile] = useState(false)
-  const [isGuest, setIsGuest] = useState(false)
-  
-  const lastSaveId = useRef(0)
-  const lastToken = useRef<string | null>(null)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const { session, loading, isGuest, migrateModal, setMigrateModal } = useAuth({
+    onSignIn: () => {},
+    showToast,
+  })
+
+  const {
+    snippets, currentId, title, code, lang, tags, tagInput, saving,
+    pushingGist, importingGist, confirmDelete,
+    setTagInput, setConfirmDelete, clearCurrent,
+    loadSnippets, selectSnippet, saveSnippet, handleFieldChange,
+    newSnippet, deleteSnippet, handleFileImport, handleImported,
+    migrateGuestSnippets, addTag, removeTag, pushToGist, shareSnippet,
+  } = useSnippets({ session, showToast, setMobileView, setMigrateModal })
+
+  const keybindRef = useRef({ currentId, brewOpen, title, code, lang, tags, saveSnippet, newSnippet, clearCurrent })
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+    keybindRef.current = { currentId, brewOpen, title, code, lang, tags, saveSnippet, newSnippet, clearCurrent }
+  })
 
-  useEffect(() => {
-    setIsGuest(new URLSearchParams(window.location.search).get('guest') === 'true')
-  }, [])
-  
-  // Auth
-  useEffect(() => {
-    let mounted = true
-
-    async function init() {
-      // console.log('[AUTH] init() called')
-      const { data: { session }, error } = await supabase.auth.getSession()
-      // console.log('[AUTH] getSession result:', { session, error })
-      if (!mounted) return
-      setSession(session)
-      setLoading(false)
-    }
-
-    init()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // console.log('[AUTH EVENT]', event)
-        // console.log('[AUTH SESSION]', session)
-        if (!mounted) return
-
-        setSession(session)
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          // console.log('[AUTH] User signed in:', session.user.id)
-          // Show migrate modal if guest data exists
-          const local = getGuestSnippets()
-          // console.log('[AUTH] Guest snippets found:', local.length)
-          if (local.length > 0) {
-            setMigrateModal(true)
-          }
-        }
-
-        if (
-          session?.user &&
-          session.provider_token &&
-          session.provider_token !== lastToken.current
-        ) {
-          lastToken.current = session.provider_token
-
-          // console.log('[AUTH] Provider token detected (new)')
-
-          try {
-            const encrypted = await encryptToken(session.provider_token)
-
-            // console.log('[AUTH] Token encrypted, saving...')
-
-            await supabase.from('user_tokens').upsert({
-              user_id: session.user.id,
-              github_token: encrypted,
-              updated_at: new Date().toISOString(),
-            })
-
-            // console.log('[AUTH] Token saved successfully')
-          } catch (err) {
-            // console.error('[AUTH] Token save failed:', err)
-            showToast('Failed to store GitHub token')
-          }
-        }
-
-        if (event === 'SIGNED_OUT') {
-          // console.log('[AUTH] User signed out')
-          setSession(null)
-        }
-
-        setLoading(false)
-      }
-    )
-
-    return () => {
-      // console.log('[AUTH] cleanup')
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+  useEffect(() => { loadSnippets() }, [loadSnippets])
 
   // Offline/online detection since it is pretty bad to make changes and discover you were offline ;-;
   useEffect(() => {
@@ -166,12 +78,13 @@ export default function Home() {
   // Handle keybinds
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const { currentId, brewOpen, title, code, lang, tags, saveSnippet, newSnippet, clearCurrent } = keybindRef.current
+
       const active = document.activeElement as HTMLElement
 
       if (e.key === 'Enter' && active?.classList.contains(styles.titleInput)) {
         e.preventDefault()
-        const editor = document.querySelector<HTMLElement>('.cm-content')
-        editor?.focus()
+        document.querySelector<HTMLElement>('.cm-content')?.focus()
         return
       }
 
@@ -207,18 +120,14 @@ export default function Home() {
         if (brewOpen) {
           setBrewOpen(false)
         } else {
-          setCurrentId(null)
-          setTitle('')
-          setCode('')
-          setLang('js')
-          setTags([])
+          clearCurrent()
         }
       }
     }
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [currentId, brewOpen, title, code, lang, tags])
+  }, [])
 
   // Close lang drop down on outside click
   useEffect(() => {
@@ -227,512 +136,7 @@ export default function Home() {
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [langOpen])
-
-  // Timer cleanup in case component unmounts
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current)
-      }
-    }
-  }, [])
-
-  // Load snippets
-  const loadSnippets = useCallback(async () => {
-    if (!session?.user?.id) {
-      setSnippets(getGuestSnippets())
-      return
-    }
-
-    let attempts = 0
-
-    while (attempts < 3) {
-      try {
-        const { data, error } = await supabase
-          .from('snippets')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('updated_at', { ascending: false })
-
-        if (error) throw error
-
-        if (data) {
-          setSnippets(data)
-          return
-        }
-      } catch (e) {
-        attempts++
-        if (attempts >= 3) {
-          showToast('Failed to load snippets')
-          return
-        }
-        await new Promise(res => setTimeout(res, 1000))
-      }
-    }
-  }, [session?.user?.id])
-
-  useEffect(() => { 
-    loadSnippets()
-  }, [loadSnippets])
-
-  // Select snippet
-  function selectSnippet(id: string) {
-    const s = snippets.find(x => x.id === id)
-    if (!s) return
-    setCurrentId(id)
-    setTitle(s.title)
-    setCode(s.code)
-    setLang(s.lang)
-    setTags(s.tags)
-    setTagInput('')
-    if (isMobile) setMobileView('editor')
-  }
-
-  // Save
-  async function saveSnippet(id: string, patch: Partial<Snippet>) {
-    const saveId = ++lastSaveId.current
-    setSaving(true)
-
-    const slowTimer = setTimeout(() => {
-      showToast('Saving is taking longer than usual...')
-    }, 3000)
-
-    try {
-      const updatedAt = new Date().toISOString()
-
-      if (!session?.user?.id) {
-        const updated = snippets.map(s =>
-          s.id === id ? { ...s, ...patch, updated_at: updatedAt } : s
-        )
-
-        if (saveId !== lastSaveId.current) return
-
-        saveGuestSnippets(updated)
-        setSnippets(updated)
-        return
-      }
-
-      const { error } = await supabase
-        .from('snippets')
-        .update({
-          ...patch,
-          updated_at: updatedAt,
-        })
-        .eq('id', id)
-
-      if (error) throw error
-
-      if (saveId !== lastSaveId.current) return
-
-      // Optimistic UI update
-      setSnippets(prev =>
-        prev.map(s =>
-          s.id === id ? { ...s, ...patch, updated_at: updatedAt } : s
-        )
-      )
-
-    } catch (err) {
-      console.error(err)
-      if (saveId === lastSaveId.current) {
-        showToast('Failed to save snippet')
-      }
-    } finally {
-      clearTimeout(slowTimer)
-      if (saveId === lastSaveId.current) {
-        setSaving(false)
-      }
-    }
-  }
-
-  // Handle file import
-  async function handleFileImport(file: File) {
-    try {
-      const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-
-      const extToLang: Record<string, string> = {
-        js: 'js',
-        jsx: 'js',
-        mjs: 'js',
-        ts: 'ts',
-        tsx: 'ts',
-        py: 'py',
-        css: 'css',
-        scss: 'css',
-        html: 'html',
-        htm: 'html',
-        json: 'json',
-        sh: 'bash',
-        bash: 'bash',
-        zsh: 'bash',
-        sql: 'sql',
-      }
-
-      const code = await file.text()
-      const lang = extToLang[ext] ?? 'other'
-      const title = file.name.replace(/\.[^.]+$/, '')
-
-      if (!session?.user?.id) {
-        const s = createGuestSnippet({ title, code, lang })
-
-        const updated = [s, ...snippets]
-        saveGuestSnippets(updated)
-        setSnippets(updated)
-
-        setCurrentId(s.id)
-        setTitle(s.title)
-        setCode(s.code)
-        setLang(s.lang)
-        setTags([])
-
-        setMobileView('editor')
-
-        showToast(`Imported ${file.name}`)
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('snippets')
-        .insert({
-          user_id: session.user.id,
-          title,
-          code,
-          lang,
-          tags: [],
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      if (!data) throw new Error('Insert failed')
-
-      await loadSnippets()
-
-      setCurrentId(data.id)
-      setTitle(data.title)
-      setCode(data.code)
-      setLang(data.lang)
-      setTags([])
-
-      setMobileView('editor')
-
-      showToast(`Imported ${file.name}`)
-    } catch (err: any) {
-      console.error(err)
-
-      if (err.message?.includes('Snippet limit reached')) {
-        showToast('Snippet limit reached (100 max)')
-      } else {
-        showToast('Failed to import file')
-      }
-    }
-  }
-
-  // Handle any change in the snippet (title, code, lang) with automatic save after a short delay
-  function handleFieldChange(field: string, value: string) {
-    if (field === 'title') setTitle(value)
-    if (field === 'code') setCode(value)
-    if (field === 'lang') setLang(value)
-
-    if (!currentId) return
-
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current)
-    }
-
-    saveTimerRef.current = setTimeout(() => {
-      saveSnippet(currentId, { [field]: value })
-    }, 800)
-  }
-
-  // New snippet
-  async function newSnippet() {
-    if (!session?.user?.id) {
-      const s = createGuestSnippet({})
-      const updated = [s, ...snippets]
-      saveGuestSnippets(updated)
-      setSnippets(updated)
-      setCurrentId(s.id)
-      setTitle(s.title)
-      setCode(s.code)
-      setLang(s.lang)
-      setTags(s.tags)
-      setTagInput('')
-      setTimeout(() => {
-        const input = document.querySelector<HTMLInputElement>(`.${styles.titleInput}`)
-        if (input) { input.focus(); input.select() }
-      }, 50)
-      return
-    }
-
-    // const { data: { user } } = await supabase.auth.getUser()
-    // if (!user?.id) return
-    const userId = session?.user?.id
-    if (!userId) return
-
-    const { data, error } = await supabase.from('snippets').insert({
-      user_id: userId,
-      title: 'Untitled snippet',
-      code: '',
-      lang: 'js',
-      tags: [],
-    }).select().single()
-
-    if (error) {
-      if (error.message.includes('Snippet limit reached')) {
-        showToast('Snippet limit reached (100 max)')
-      } else {
-        showToast('Failed to create snippet')
-      }
-      return
-    }
-
-    if (data) {
-      await loadSnippets()
-      setCurrentId(data.id)
-      setTitle(data.title)
-      setCode(data.code)
-      setLang(data.lang)
-      setTags(data.tags)
-      setTagInput('')
-      setTimeout(() => {
-        const input = document.querySelector<HTMLInputElement>(`.${styles.titleInput}`)
-        if (input) {
-          input.focus()
-          input.select()
-        }
-      }, 50)
-    }
-  }
-
-  // Delete snippet
-  async function deleteSnippet() {
-    if (!currentId) return
-
-    try {
-      if (!session?.user?.id) {
-        const updated = snippets.filter(s => s.id !== currentId)
-        saveGuestSnippets(updated)
-        setSnippets(updated)
-        setCurrentId(null)
-        setTitle('')
-        setCode('')
-        setLang('js')
-        setTags([])
-        showToast('Snippet deleted')
-        return
-      }
-
-      const { error } = await supabase
-        .from('snippets')
-        .delete()
-        .eq('id', currentId)
-
-      if (error) throw error
-
-      setCurrentId(null)
-      setTitle('')
-      setCode('')
-      setLang('js')
-      setTags([])
-
-      await loadSnippets()
-
-      showToast('Snippet deleted')
-    } catch (err) {
-      console.error(err)
-      showToast('Failed to delete snippet')
-    }
-  }
-
-  // Import from Gist
-  async function handleImported(snippet: {
-    title: string
-    code: string
-    lang: string
-    gist_url: string
-  }) {
-    try {
-      if (!session?.user?.id) {
-        const s = createGuestSnippet({
-          title: snippet.title,
-          code: snippet.code,
-          lang: snippet.lang,
-          gist_url: snippet.gist_url,
-        })
-
-        const updated = [s, ...snippets]
-        saveGuestSnippets(updated)
-        setSnippets(updated)
-
-        setCurrentId(s.id)
-        setTitle(s.title)
-        setCode(s.code)
-        setLang(s.lang)
-        setTags([])
-
-        showToast('Gist imported')
-        return
-      }
-
-      if (importingGist) return
-
-      setImportingGist(true)
-
-      const { data, error } = await supabase
-        .from('snippets')
-        .insert({
-          user_id: session.user.id,
-          title: snippet.title,
-          code: snippet.code,
-          lang: snippet.lang,
-          tags: [],
-          gist_url: snippet.gist_url,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      if (!data) throw new Error('Insert failed')
-
-      await loadSnippets()
-
-      setCurrentId(data.id)
-      setTitle(data.title)
-      setCode(data.code)
-      setLang(data.lang)
-      setTags([])
-
-      showToast('Gist imported')
-    } catch (err: any) {
-      console.error(err)
-
-      if (err.message?.includes('Snippet limit reached')) {
-        showToast('Snippet limit reached (100 max)')
-      } else {
-        showToast('Failed to import Gist')
-      }
-    } finally {
-      setImportingGist(false)
-    }
-  }
-
-  // Migrate guest snippets to user account on login
-  async function migrateGuestSnippets() {
-    if (!session?.user?.id) return
-
-    try {
-      const local = getGuestSnippets()
-
-      const payload = local.map(s => ({
-        user_id: session.user.id,
-        title: s.title,
-        code: s.code,
-        lang: s.lang,
-        tags: s.tags,
-      }))
-
-      const { error } = await supabase
-        .from('snippets')
-        .insert(payload)
-
-      if (error) throw error
-
-      clearGuestSnippets()
-
-      showToast(`${local.length} snippet${local.length > 1 ? 's' : ''} migrated!`)
-      await loadSnippets()
-      setMigrateModal(false)
-
-    } catch (err) {
-      console.error(err)
-      showToast('Migration failed, your local snippets are still safe')
-    }
-  }
-
-  // Tags
-  async function addTag(e: React.KeyboardEvent) {
-    if (e.key !== 'Enter' || !tagInput.trim() || !currentId) return
-    const newTags = [...new Set([...tags, tagInput.trim().toLowerCase()])]
-    setTags(newTags)
-    setTagInput('')
-    await saveSnippet(currentId, { tags: newTags })
-  }
-
-  async function removeTag(tag: string) {
-    if (!currentId) return
-    const newTags = tags.filter(t => t !== tag)
-    setTags(newTags)
-    await saveSnippet(currentId, { tags: newTags })
-  }
-
-  // Push to Gist
-  async function pushToGist() {
-    if (!currentId || pushingGist) return
-
-    setPushingGist(true)
-    showToast('Pushing to Gist...')
-
-    try {
-      const res = await fetch('/api/gist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, code, lang }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create Gist')
-      }
-
-      if (!data.url) {
-        throw new Error('No URL returned from Gist')
-      }
-
-      await saveSnippet(currentId, { gist_url: data.url })
-
-      showToast('Gist created, opening...')
-      window.open(data.url, '_blank')
-    } catch (err: any) {
-      console.error(err)
-      showToast(err.message || 'Failed to create Gist')
-    } finally {
-      setPushingGist(false)
-    }
-  }
-
-  // Share snippet (sharing)
-  async function shareSnippet() {
-    if (!currentId || !session?.user?.id) return
-
-    showToast('Creating share link...')
-
-    try {
-      const { data, error } = await supabase
-        .from('shared_snippets')
-        .insert({
-          user_id: session.user.id,
-          title,
-          code,
-          lang,
-          tags,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      if (!data) throw new Error('No share data returned')
-
-      const url = `${window.location.origin}/s/${data.id}`
-
-      await navigator.clipboard.writeText(url)
-
-      showToast('Share link copied (expires in 7 days)')
-    } catch (err) {
-      console.error(err)
-      showToast('Failed to create share link')
-    }
-  }
+  
 
   // Copy
   function copyCode() {
@@ -787,7 +191,10 @@ export default function Home() {
     ]
 
     zip(files, (err, data) => {
-      if (err) { showToast('Export failed'); return }
+      if (err) {
+        showToast('Export failed')
+        return
+      }
       const blob = new Blob([data as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -797,21 +204,6 @@ export default function Home() {
       URL.revokeObjectURL(url)
       showToast(`Downloaded ${snippets.length} snippets`)
     })
-  }
-
-  // Toast
-  function showToast(msg: string) {
-    setToast(msg)
-    setToastVisible(true)
-
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current)
-    }
-
-    toastTimeoutRef.current = setTimeout(() => {
-      setToastVisible(false)
-      setTimeout(() => setToast(''), 300)
-    }, 2000)
   }
 
   // Filter snippets based on search (in title and in code) and active tag
@@ -848,7 +240,10 @@ export default function Home() {
     <div
       className={styles.app}
       data-mobile-view={mobileView}
-      onDragOver={e => { e.preventDefault(); setDragging(true) }}
+      onDragOver={e => {
+        e.preventDefault()
+        setDragging(true)
+      }}
       onDragLeave={e => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false)
       }}
@@ -863,7 +258,7 @@ export default function Home() {
         snippets={filtered}
         currentId={currentId}
         isGuest={isGuest}
-        onSelect={selectSnippet}
+        onSelect={id => selectSnippet(id, isMobile)}
         onNew={newSnippet}
         onImported={handleImported}
         search={search}
@@ -871,11 +266,7 @@ export default function Home() {
         activeTag={activeTag}
         onTagClick={t => setActiveTag(activeTag === t ? null : t)}
         onLogoClick={() => {
-          setCurrentId(null)
-          setTitle('')
-          setCode('')
-          setLang('js')
-          setTags([])
+          clearCurrent()
           setMobileView('sidebar')
         }}
         onDownloadAll={downloadAllSnippets}
@@ -926,7 +317,7 @@ export default function Home() {
                   <IconDownload /> Download
                 </button>
                 {session && (
-                  <button className={styles.btnAction} onClick={shareSnippet}>
+                  <button className={styles.btnAction} onClick={() => shareSnippet(session.user.id)}>
                     <IconShare /> Share
                   </button>
                 )}

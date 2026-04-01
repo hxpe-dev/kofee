@@ -23,9 +23,9 @@ interface GistFile {
 
 interface Props {
   onImported: (snippet: {
-    title: string;
-    code: string;
-    lang: string;
+    title: string
+    code: string
+    lang: string
     gist_url: string
   }) => void
   onClose: () => void
