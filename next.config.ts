@@ -7,13 +7,13 @@ const csp = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: https:;
-  connect-src 'self';
+  connect-src 'self' https://fkgxsgydromxcdivevet.supabase.co https://enough-tomcat-83590.upstash.io https://gist.githubusercontent.com;
   frame-ancestors 'none';
 `;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  
+
   // adding headers for security (CSP)
   async headers() {
     return [
