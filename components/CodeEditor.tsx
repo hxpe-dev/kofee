@@ -73,6 +73,7 @@ const editorStyles = EditorView.theme({
     height: '100%',
     fontSize: '14px',
     fontFamily: '"JetBrains Mono", monospace',
+    fontVariantLigatures: 'none',
   },
   '.cm-scroller': {
     overflow: 'auto',
