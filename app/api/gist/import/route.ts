@@ -7,7 +7,14 @@ import { getUserFromRequest } from '@/lib/utils'
 export async function POST(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: req.headers.get('authorization') || '',
+        },
+      },
+    }
   )
 
   const user = await getUserFromRequest(req, supabase)
