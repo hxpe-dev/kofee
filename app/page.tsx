@@ -305,6 +305,7 @@ export default function Home() {
                 value={title}
                 onChange={e => handleFieldChange('title', e.target.value)}
                 placeholder="Snippet title..."
+                data-title-input
               />
               <div className={styles.topbarActions}>
                 <button className={styles.btnAction} onClick={copyCode}>
