@@ -7,7 +7,7 @@ const csp = `
   style-src 'self' 'unsafe-inline';
   font-src 'self';
   img-src 'self' data: https://kofee.dev;
-  connect-src 'self' https://fkgxsgydromxcdivevet.supabase.co https://enough-tomcat-83590.upstash.io https://gist.githubusercontent.com;
+  connect-src 'self' https://fkgxsgydromxcdivevet.supabase.co https://enough-tomcat-83590.upstash.io https://gist.githubusercontent.com https://avatars.githubusercontent.com;
   frame-ancestors 'none';
 `;
 
