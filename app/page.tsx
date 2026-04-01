@@ -1067,7 +1067,6 @@ export default function Home() {
           onMigrate={migrateGuestSnippets}
           onDiscard={() => {
             setMigrateModal(false)
-            clearGuestSnippets()
           }}
         />
       )}
