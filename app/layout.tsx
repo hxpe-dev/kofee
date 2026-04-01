@@ -9,6 +9,29 @@ const lora = Lora({ subsets: ['latin'], variable: '--font-lora' })
 export const metadata: Metadata = {
   title: 'Kofee - Your brew of code',
   description: 'A minimal code snippet manager',
+
+  openGraph: {
+    title: 'Kofee - Your brew of code',
+    description: 'A minimal code snippet manager',
+    url: 'https://kofee.dev',
+    siteName: 'Kofee',
+    images: [
+      {
+        url: 'https://kofee.dev/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Kofee preview',
+      },
+    ],
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kofee - Your brew of code',
+    description: 'A minimal code snippet manager',
+    images: ['https://kofee.dev/og-image.png'],
+  },
 }
 
 export const viewport = {
