@@ -18,6 +18,8 @@ interface SharedSnippet {
 export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet }) {
   const [saved, setSaved] = useState(false)
   const [saveMsg, setSaveMsg] = useState('Save to my Kofee')
+  const [reported, setReported] = useState(false)
+  const [reporting, setReporting] = useState(false)
 
   async function saveToAccount() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -47,6 +49,17 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
     }
 
     setSaved(true)
+  }
+
+  async function reportSnippet() {
+    if (reported || reporting) return
+    setReporting(true)
+    await supabase.from('snippet_reports').insert({
+      snippet_id: snippet.id,
+      reason: 'user_report',
+    })
+    setReporting(false)
+    setReported(true)
   }
 
   const expiresIn = Math.ceil(
@@ -89,6 +102,13 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
             key={saveMsg}
           >
             {saveMsg}
+          </button>
+          <button
+            onClick={reportSnippet}
+            disabled={reported || reporting}
+            className={styles.report}
+          >
+            {reported ? '✓ Reported' : reporting ? 'Reporting...' : 'Report'}
           </button>
         </div>
       </div>

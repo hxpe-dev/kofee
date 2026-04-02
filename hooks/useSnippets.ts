@@ -36,6 +36,21 @@ export function useSnippets({
 
   const lastSaveId = useRef(0)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const warnedSnippetRef = useRef<string | null>(null)
+
+  const SECRET_PATTERNS = [
+    /sk-[a-zA-Z0-9]{32,}/,
+    /ghp_[a-zA-Z0-9]{36}/,
+    /AKIA[0-9A-Z]{16}/,
+    /-----BEGIN.*PRIVATE KEY-----/,
+  ]
+
+  // Helper to extract error messages from Supabase errors
+  function getErrorMessage(err: any): string {
+    if (err?.code === '23514') return 'Snippet is too large to save (max 100k characters)'
+    if (err?.message?.includes('Snippet limit reached')) return 'Snippet limit reached (100 max)'
+    return 'Failed to save snippet'
+  }
 
   const loadSnippets = useCallback(async () => {
     if (!session?.user?.id) {
@@ -122,7 +137,7 @@ export function useSnippets({
       )
     } catch (err) {
       console.error(err)
-      if (saveId === lastSaveId.current) showToast('Failed to save snippet')
+      if (saveId === lastSaveId.current) showToast(getErrorMessage(err))
     } finally {
       clearTimeout(slowTimer)
       if (saveId === lastSaveId.current) setSaving(false)
@@ -131,7 +146,20 @@ export function useSnippets({
 
   function handleFieldChange(field: string, value: string) {
     if (field === 'title') setTitle(value)
-    if (field === 'code') setCode(value)
+    if (field === 'code') {
+      setCode(value)
+      if (SECRET_PATTERNS.some(pattern => pattern.test(value))) {
+        if (warnedSnippetRef.current !== currentId) {
+          warnedSnippetRef.current = currentId
+          showToast('⚠️ This snippet may contain secrets or API keys')
+        }
+      } else {
+        // Secret removed, reset so they get warned again if they paste another
+        if (warnedSnippetRef.current === currentId) {
+          warnedSnippetRef.current = null
+        }
+      }
+    }
     if (field === 'lang') setLang(value)
 
     if (!currentId) return
@@ -173,9 +201,7 @@ export function useSnippets({
     }).select().single()
 
     if (error) {
-      showToast(error.message.includes('Snippet limit reached')
-        ? 'Snippet limit reached (100 max)'
-        : 'Failed to create snippet')
+      showToast(getErrorMessage(error))
       return
     }
 
@@ -277,9 +303,7 @@ export function useSnippets({
       showToast(`Imported ${file.name}`)
     } catch (err: any) {
       console.error(err)
-      showToast(err.message?.includes('Snippet limit reached')
-        ? 'Snippet limit reached (100 max)'
-        : 'Failed to import file')
+      showToast(getErrorMessage(err))
     }
   }
 
@@ -335,9 +359,7 @@ export function useSnippets({
       showToast('Gist imported')
     } catch (err: any) {
       console.error(err)
-      showToast(err.message?.includes('Snippet limit reached')
-        ? 'Snippet limit reached (100 max)'
-        : 'Failed to import Gist')
+      showToast(getErrorMessage(err))
     } finally {
       setImportingGist(false)
     }

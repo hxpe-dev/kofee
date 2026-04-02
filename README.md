@@ -196,6 +196,7 @@ Some ideas for future versions, contributions welcome:
 - [ ] Public snippet profiles
 - [ ] Snippet aging indicator (cold snippets you haven't used)
 - [ ] VS Code extension
+- [ ] Lazy loading optimization (don't fetch all user snippets at once)
 - [x] Mobile-friendly layout
 - [x] Import from local files
 

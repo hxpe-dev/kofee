@@ -62,3 +62,23 @@
   font-size: 11px;
   transition: all 0.2s;
 }
+
+.report {
+  background: transparent;
+  border: 1px solid var(--color-border-2);
+  color: var(--color-text-faint);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.report:hover:not(:disabled) {
+  color: #e08080;
+  border-color: rgba(200, 80, 80, 0.4);
+}
+
+.report:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

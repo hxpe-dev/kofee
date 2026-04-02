@@ -77,6 +77,35 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 
+-- Reports table
+create table snippet_reports (
+  id         uuid default gen_random_uuid() primary key,
+  snippet_id uuid not null references shared_snippets(id) on delete cascade,
+  reason     text not null default 'user_report',
+  created_at timestamp with time zone default now()
+);
+alter table snippet_reports enable row level security;
+
+-- Anyone can insert a report (even unauthenticated)
+create policy "Anyone can report a snippet"
+  on snippet_reports for insert
+  with check (true);
+
+-- Only service role can read reports (you, via Supabase dashboard)
+-- No select policy = only service role can read
+
+
+-- Size limits on code columns
+alter table snippets
+  add constraint snippets_code_length check (char_length(code) <= 100000);
+
+alter table snippets
+  add constraint snippets_title_length check (char_length(title) <= 500);
+
+alter table shared_snippets
+  add constraint shared_snippets_code_length check (char_length(code) <= 100000);
+
+
 -- Snippet limit trigger 
 
 create or replace function check_snippet_limit()
