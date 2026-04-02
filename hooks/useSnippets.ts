@@ -47,8 +47,32 @@ export function useSnippets({
 
   // Helper to extract error messages from Supabase errors
   function getErrorMessage(err: any): string {
-    if (err?.code === '23514') return 'Snippet is too large to save (max 100k characters)'
-    if (err?.message?.includes('Snippet limit reached')) return 'Snippet limit reached (100 max)'
+    if (err?.code === '23514') {
+      const msg = err?.message || ''
+
+      if (msg.includes('snippets_code_length'))
+        return 'Snippet is too large (max 100k characters)'
+      else if (msg.includes('snippets_title_length'))
+        return 'Snippet title is too long (max 500 characters)'
+      else if (msg.includes('snippets_title_notempty'))
+        return 'Snippet title is empty'
+      else if (msg.includes('snippets_lang_valid'))
+        return 'Invalid language specified'
+      else if (msg.includes('snippets_tags_count'))
+        return 'Snippet has too many tags (max 20)'
+      else if (msg.includes('snippets_tag_length'))
+        return 'Snippet tag is too long (max 50 characters per tag)'
+      
+      return 'Invalid snippet data'
+    }
+    if (err?.code === 'P0001') {
+      if (err?.message?.includes('Snippet limit reached'))
+        return 'Snippet limit reached (100 max)'
+      if (err?.message?.includes('Report limit reached'))
+        return 'Too many reports for this snippet'
+    
+      return 'Operation blocked'
+    }
     return 'Failed to save snippet'
   }
 
