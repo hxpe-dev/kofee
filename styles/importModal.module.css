@@ -1,0 +1,180 @@
+/* Animations */
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 10, 8, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--radius-xl);
+  padding: var(--space-7);
+  width: 420px;
+  box-shadow: var(--shadow-modal);
+  animation: modalIn 0.2s ease;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-5);
+  line-height: 1.6;
+}
+
+/* URL input view */
+
+.urlInput {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  outline: none;
+  margin-bottom: var(--space-2);
+  transition: border-color var(--transition-fast);
+}
+
+.urlInput::placeholder {
+  color: var(--color-text-faint);
+}
+
+.urlInput:focus {
+  border-color: rgba(200, 150, 90, 0.4);
+}
+
+.urlInputError {
+  border-color: rgba(200, 100, 100, 0.5);
+}
+
+.errorMsg {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  margin-bottom: var(--space-3);
+}
+
+.buttonRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.btnCancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--radius-md);
+  padding: 9px 0;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btnCancel:hover {
+  border-color: var(--color-border-2);
+  color: var(--color-text-dim);
+}
+
+.btnImport {
+  flex: 2;
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 9px 0;
+  color: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.btnImport:hover:not(:disabled) {
+  background: var(--color-accent-2);
+}
+
+.btnImport:disabled {
+  background: var(--color-surface);
+  color: var(--color-text-faint);
+  cursor: not-allowed;
+}
+
+/* File picker view */
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.fileItem {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-2);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fileItem:hover {
+  border-color: rgba(200, 150, 90, 0.35);
+  background: rgba(200, 150, 90, 0.08);
+}
+
+.fileName {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+}
+
+.fileLang {
+  font-size: var(--font-size-xs);
+  padding: 1px var(--space-1);
+  border-radius: var(--space-1);
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.btnCancelFull {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) 0;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.btnCancelFull:hover {
+  color: var(--color-text-dim);
+}

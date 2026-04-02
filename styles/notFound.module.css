@@ -1,0 +1,39 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--color-bg);
+  gap: 16px;
+  font-family: var(--font-mono);
+}
+
+.coffeeIcon {
+  font-size: 32px;
+  opacity: 0.3;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.msg {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.back {
+  margin-top: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-2);
+  border-radius: 8px;
+  padding: 8px 20px;
+  color: var(--color-text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: none;
+}

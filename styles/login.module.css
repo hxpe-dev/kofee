@@ -1,0 +1,120 @@
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--color-bg);
+  gap: 32px;
+  animation: fadeSlideIn 0.4s ease;
+}
+
+.logoGroup {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  color: var(--color-accent-2);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  gap: var(--space-2);
+  display: flex;
+  align-items: center;
+}
+
+.logoDot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.logoSub {
+  color: var(--color-text-faint);
+  font-size: var(--font-size-base);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-6);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+.btn:hover {
+  border-color: rgba(200, 150, 90, 0.4);
+  color: var(--color-accent-2);
+}
+
+.note {
+  color: var(--color-text-faint);
+  font-size: var(--font-size-sm);
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.btnGuest {
+  background: transparent;
+  border: none;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btnGuest:hover {
+  color: var(--color-text-dim);
+}
+
+.topRight {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-2);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.iconButton:hover {
+  background: var(--color-accent-1);
+  border-color: var(--color-accent-2);
+  color: var(--color-accent-2);
+}
