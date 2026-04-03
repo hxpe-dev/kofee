@@ -147,9 +147,12 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with GitHub.
 The full reproducible schema lives at [`supabase/schema.sql`](supabase/schema.sql).
 
 It includes:
-- `snippets` table with RLS policies
-- `user_tokens` table for encrypted GitHub tokens (also with RLS)
-- Indexes on `user_id` and `updated_at`
+- `snippets` table with RLS policies (enforcing a 100-snippet limit per user)
+- `shared_snippets` table for public snippets that auto-expire after 7 days
+- `snippet_reports` table to handle community moderation
+- `user_tokens` table for encrypted GitHub tokens (with RLS)
+- Automated cleanup via `pg_cron` for expired shares
+- Optimized indexes on `user_id` and `updated_at`
 
 ---
 
@@ -169,11 +172,11 @@ It includes:
 
 | Shortcut | Action |
 |---|---|
-| `N` | New snippet (when not typing) |
-| `S` | Force save current snippet |
-| `B` | Toggle Brew mode |
-| `Enter` in title | Jump to code editor |
-| `Escape` | Deselect snippet / exit Brew mode |
+| `Ctrl/Cmd` + `N` | New snippet (when not typing) |
+| `Ctrl/Cmd` + `S` | Force save current snippet |
+| `B` | Toggle Brew mode (when not typing) |
+| `Enter` (in title) | Jump to code editor |
+| `Esc` | Deselect snippet / exit Brew mode |
 
 ---
 
@@ -192,17 +195,19 @@ If you're not sure whether something fits the project vision, open an issue firs
 
 ---
 
-## Roadmap
+## What's Brewing ☕
 
-Some ideas for future versions, contributions welcome:
+Contributions are welcomed!
 
-- [ ] Collections / folders for snippets
+### Planned
+- [ ] Implement snippet favoriting and quick filter
+- [ ] Enable filtering by multiple tags at the same time
+
+### Ideas
 - [ ] Public snippet profiles
 - [ ] Snippet aging indicator (cold snippets you haven't used)
 - [ ] VS Code extension
 - [ ] Lazy loading optimization (don't fetch all user snippets at once)
-- [x] Mobile-friendly layout
-- [x] Import from local files
 
 ---
 
