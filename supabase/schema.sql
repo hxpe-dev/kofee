@@ -4,7 +4,12 @@
 -- TAG VALIDATION FUNCTION
 -- =========================================================
 create or replace function tags_are_valid(tags text[])
-returns boolean as $$
+returns boolean
+language plpgsql
+immutable
+security definer
+set search_path = public
+as $$
 begin
   return tags is null OR not exists (
     select 1
@@ -12,7 +17,7 @@ begin
     where char_length(tag) > 50
   );
 end;
-$$ language plpgsql immutable;
+$$;
 
 
 -- =========================================================
