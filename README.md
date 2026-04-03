@@ -130,8 +130,10 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with GitHub.
 
 ## Deploying to Vercel
 
+#### Deploy from this repository
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https%3A%2F%2Fgithub.com%2Fhxpe-dev%2Fkofee%2Ftree%2Fmain)
 
+#### Deploy from your repository
 1. Push your repo to GitHub
 2. Import it on [vercel.com](https://vercel.com)
 3. Add your environment variables in the Vercel dashboard
