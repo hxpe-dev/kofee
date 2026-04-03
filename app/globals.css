@@ -8,70 +8,73 @@ Reference these variables everywhere else.
 
 :root {
   /* Background layers (darkest -> lightest) */
-  --color-bg:          #1c1410;
+  --color-bg: #1c1410;
   --color-bg-elevated: #231a14;
-  --color-bg-subtle:   #2c2018;
+  --color-bg-subtle: #2c2018;
 
   /* Surface layers (for cards, inputs, panels) */
-  --color-surface:     #332618;
-  --color-surface-2:   #3d2e1e;
+  --color-surface: #332618;
+  --color-surface-2: #3d2e1e;
 
   /* Borders */
-  --color-border:      rgba(210, 170, 120, 0.10);
-  --color-border-2:    rgba(210, 170, 120, 0.18);
+  --color-border: rgba(210, 170, 120, 0.10);
+  --color-border-2: rgba(210, 170, 120, 0.18);
 
   /* Text */
-  --color-text:        #e8d8c0;
-  --color-text-dim:    #b89880;
-  --color-text-faint:  #8a7060;
+  --color-text: #e8d8c0;
+  --color-text-dim: #b89880;
+  --color-text-faint: #8a7060;
 
   /* Accent (amber / coffee gold) */
-  --color-accent:      #c8965a;
-  --color-accent-2:    #e8b878;
+  --color-accent: #c8965a;
+  --color-accent-2: #e8b878;
 
   /* Semantic colors */
-  --color-success:     #7daa7a;
-  --color-danger:      #c87a6a;
-  --color-info:        #7a9ab8;
+  --color-success: #7daa7a;
+  --color-danger: #c87a6a;
+  --color-info: #7a9ab8;
 
   /* Language badge colors */
-  --lang-js:           #d4b84a;
-  --lang-ts:           #5a8adc;
-  --lang-py:           #6aaad0;
-  --lang-rs:         #ce412b;
-  --lang-css:          #7aaae0;
-  --lang-bash:         #7daa7a;
-  --lang-sql:          #d09060;
-  --lang-html:         #d08060;
-  --lang-json:         #a0a0a0;
-  --lang-other:        #807060;
+  --lang-js: #d4b84a;
+  --lang-ts: #5a8adc;
+  --lang-py: #6aaad0;
+  --lang-rs: #ce412b;
+  --lang-css: #7aaae0;
+  --lang-bash: #7daa7a;
+  --lang-sql: #d09060;
+  --lang-html: #d08060;
+  --lang-json: #a0a0a0;
+  --lang-java: #f89820;
+  --lang-cs: #68217a;
+  --lang-cpp: #00599c;
+  --lang-other: #807060;
 
   /* Typography */
   --font-display: 'Lora', Georgia, serif;
-  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
-  --font-size-xs:   11px;
-  --font-size-sm:   12px;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
   --font-size-base: 14px;
-  --font-size-md:   16px;
-  --font-size-lg:   20px;
-  --font-size-xl:   24px;
-  --font-size-2xl:  42px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 42px;
 
   /* Spacing scale */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-7:  28px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
 
   /* Border radius */
-  --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   10px;
-  --radius-xl:   14px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-full: 9999px;
 
   /* Transitions */
@@ -79,7 +82,7 @@ Reference these variables everywhere else.
   --transition-base: 0.2s ease;
 
   /* Shadows */
-  --shadow-menu:  0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.6);
 }
 
@@ -96,10 +99,10 @@ html, body {
 }
 
 body {
-  background:  var(--color-bg);
-  color:       var(--color-text);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: var(--font-mono);
-  font-size:   var(--font-size-base);
+  font-size: var(--font-size-base);
   line-height: 1.6;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;

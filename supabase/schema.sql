@@ -32,7 +32,7 @@ create table snippets (
   constraint snippets_code_length   check (char_length(code) <= 100000),
   constraint snippets_title_length  check (char_length(title) <= 500),
   constraint snippets_title_notempty check (char_length(trim(title)) > 0),
-  constraint snippets_lang_valid    check (lang in ('js','ts','py','rs','css','bash','sql','html','json','other')),
+  constraint snippets_lang_valid    check (lang in ('js','ts','py','rs','css','bash','sql','html','json','java','cs','cpp','other')),
   constraint snippets_tags_count    check (array_length(tags, 1) <= 20 or tags = '{}'),
   constraint snippets_tag_length    check (tags_are_valid(tags))
 );
@@ -80,7 +80,7 @@ create table shared_snippets (
 
   constraint shared_snippets_code_length  check (char_length(code) <= 100000),
   constraint shared_snippets_title_length check (char_length(title) <= 500),
-  constraint shared_snippets_lang_valid   check (lang in ('js','ts','py','rs','css','bash','sql','html','json','other')),
+  constraint shared_snippets_lang_valid   check (lang in ('js','ts','py','rs','css','bash','sql','html','json','java','cs','cpp','other')),
   constraint shared_snippets_tags_count   check (array_length(tags, 1) <= 20 or tags = '{}'),
   constraint shared_snippets_tag_length   check (tags_are_valid(tags))
 );

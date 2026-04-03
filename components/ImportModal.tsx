@@ -14,6 +14,9 @@ const LANG_COLORS: Record<string, string> = {
   sql: 'var(--lang-sql)',
   html: 'var(--lang-html)',
   json: 'var(--lang-json)',
+  java: 'var(--lang-java)',
+  cs: 'var(--lang-cs)',
+  cpp: 'var(--lang-cpp)',
   other: 'var(--lang-other)',
 }
 

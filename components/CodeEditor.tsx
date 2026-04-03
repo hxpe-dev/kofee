@@ -8,6 +8,9 @@ import { css } from '@codemirror/lang-css'
 import { sql } from '@codemirror/lang-sql'
 import { html } from '@codemirror/lang-html'
 import { json } from '@codemirror/lang-json'
+import { java } from "@codemirror/lang-java"
+import { csharp } from "@replit/codemirror-lang-csharp"
+import { cpp } from "@codemirror/lang-cpp"
 import { StreamLanguage } from '@codemirror/language'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
 import { EditorView } from '@codemirror/view'
@@ -149,6 +152,9 @@ function getLanguage(lang: string): Extension {
     case 'sql': return sql()
     case 'html': return html()
     case 'json': return json()
+    case 'java': return java()
+    case 'cs': return csharp()
+    case 'cpp': return cpp()
     case 'bash': return StreamLanguage.define(shell)
     default: return javascript() // js fallback 
   }

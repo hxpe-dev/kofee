@@ -9,7 +9,7 @@ drop constraint snippets_lang_valid;
 
 alter table snippets
 add constraint snippets_lang_valid
-check (lang in ('js','ts','py','rs','css','bash','sql','html','json','[NEW_LANGUAGE]','other'));
+check (lang in ('js','ts','py','rs','css','bash','sql','html','json','java','cs','cpp','[NEW_LANGUAGE]','other'));
 
 
 alter table shared_snippets
@@ -17,4 +17,4 @@ drop constraint shared_snippets_lang_valid;
 
 alter table shared_snippets
 add constraint shared_snippets_lang_valid
-check (lang in ('js','ts','py','rs','css','bash','sql','html','json','[NEW_LANGUAGE]','other'));
+check (lang in ('js','ts','py','rs','css','bash','sql','html','json','java','cs','cpp','[NEW_LANGUAGE]','other'));

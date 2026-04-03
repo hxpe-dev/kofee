@@ -15,7 +15,7 @@ import { useMobileDetect } from '@/hooks/useMobileDetect'
 import { useAuth } from '@/hooks/useAuth'
 import { useSnippets } from '@/hooks/useSnippets'
 
-const LANGS = ['js','ts','py','rs','css','bash','sql','html','json','other']
+const LANGS = ['js','ts','py','rs','css','bash','sql','html','json','java','cs','cpp','other']
 
 const EXTENSIONS: Record<string, string> = {
   js: 'js',
@@ -27,6 +27,9 @@ const EXTENSIONS: Record<string, string> = {
   sql: 'sql',
   html: 'html',
   json: 'json',
+  java: 'java',
+  cs: 'cs',
+  cpp: 'cpp',
   other: 'txt'
 }
 
@@ -274,7 +277,7 @@ export default function Home() {
         onImportFile={() => {
           const input = document.createElement('input')
           input.type = 'file'
-          input.accept = '.js,.jsx,.ts,.tsx,.py,.rs,.css,.scss,.html,.json,.sh,.bash,.sql,.txt,.md,.other'
+          input.accept = '.js,.jsx,.ts,.tsx,.py,.rs,.css,.scss,.html,.json,.java,.cs,.c,.cpp,.cxx,.cc,.c++,.cp,.h,.hpp,.sh,.bash,.sql,.txt,.md,.other'
           input.onchange = e => {
             const file = (e.target as HTMLInputElement).files?.[0]
             if (file) handleFileImport(file)
