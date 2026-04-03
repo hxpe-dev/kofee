@@ -15,7 +15,7 @@ import { useMobileDetect } from '@/hooks/useMobileDetect'
 import { useAuth } from '@/hooks/useAuth'
 import { useSnippets } from '@/hooks/useSnippets'
 
-const LANGS = ['js','ts','py','rust','css','bash','sql','html','json','other']
+const LANGS = ['js','ts','py','rs','css','bash','sql','html','json','other']
 
 const EXTENSIONS: Record<string, string> = {
   js: 'js',
