@@ -206,12 +206,22 @@ Some ideas for future versions, contributions welcome:
 
 ---
 
-## License & Commercial Use
+## License
 
-Kofee is open-source under the [MIT License](LICENSE) You are free to use, modify, and contribute.  
+Kofee is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-or-later).
 
-⚠️ While the license allows commercial use legally, please **do not deploy a competing service** based on Kofee without permission.  
-Your support, contributions, and feedback are what help Kofee grow!
+This means:
+
+* You are free to use, modify, and self-host this software
+* If you modify Kofee and distribute it, or run it as a public service, you must make your source code available under the same license
+* Private modifications that are not distributed or deployed as a service do not need to be shared
+
+This ensures that improvements to Kofee used by others remain accessible to the community.
+
+### Why AGPL?
+
+Kofee is licensed under AGPL-3.0-or-later to ensure that improvements made to the platform, especially when deployed as a hosted service, remain open and benefit the community.
+
 
 ---
 
@@ -225,3 +235,7 @@ Kofee is free and open source. If you find it useful and want to support its dev
 
 Built with ☕ by [hxpe](https://github.com/hxpe-dev)  
 If you enjoy **Kofee**, consider starring the [GitHub repository](https://github.com/hxpe-dev/kofee)!
+
+---
+
+© 2026 hxpe - Licensed under AGPL-3.0-or-later
