@@ -1,12 +1,14 @@
 <div align="center">
 
-# ☕ Kofee
+# ☕ [`kofee.dev`](https://kofee.dev)
 
 **A minimal, beautiful code snippet manager for developers.**
 
 *Your brew of code.*
 
 </div>
+
+---
 
 > [!NOTE]
 > **Kofee is just getting started.**  
