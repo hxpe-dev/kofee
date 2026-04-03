@@ -280,6 +280,7 @@ export function useSnippets({
         ts: 'ts',
         tsx: 'ts',
         py: 'py',
+        rs: 'rs',
         css: 'css',
         scss: 'css',
         html: 'html',

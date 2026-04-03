@@ -8,6 +8,7 @@ const LANG_COLORS: Record<string, string> = {
   js: 'var(--lang-js)',
   ts: 'var(--lang-ts)',
   py: 'var(--lang-py)',
+  rs: 'var(--lang-rs)',
   css: 'var(--lang-css)',
   bash: 'var(--lang-bash)',
   sql: 'var(--lang-sql)',

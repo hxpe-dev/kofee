@@ -3,6 +3,7 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
+import { rust } from '@codemirror/lang-rust'
 import { css } from '@codemirror/lang-css'
 import { sql } from '@codemirror/lang-sql'
 import { html } from '@codemirror/lang-html'
@@ -143,6 +144,7 @@ function getLanguage(lang: string): Extension {
     case 'js': return javascript()
     case 'ts': return javascript({ typescript: true })
     case 'py': return python()
+    case 'rs': return rust()
     case 'css': return css()
     case 'sql': return sql()
     case 'html': return html()
