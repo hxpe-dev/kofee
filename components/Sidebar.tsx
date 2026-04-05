@@ -175,6 +175,7 @@ export default function Sidebar({
                     <IconKofi/>
                     Support us
                   </a>
+                  <div className={styles.avatarMenuDivider} />
                   <a
                     href="/shares"
                     className={styles.avatarMenuLink}

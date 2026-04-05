@@ -136,6 +136,12 @@
   flex-direction: column;
 }
 
+.avatarMenuDivider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-1) 0;
+}
+
 .avatarMenuLink {
   display: flex;
   align-items: center;
