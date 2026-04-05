@@ -5,6 +5,7 @@ import CodeEditor from './CodeEditor'
 import { supabase } from '@/lib/supabase'
 import { createGuestSnippet, getGuestSnippets, saveGuestSnippets } from '@/lib/guestSnippets'
 import styles from '@/styles/sharedSnippetView.module.css'
+import { timeUntil, expiresSoon } from '@/lib/utils'
 
 interface SharedSnippet {
   id: string
@@ -62,9 +63,8 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
     setReported(true)
   }
 
-  const expiresIn = Math.ceil(
-    (new Date(snippet.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  )
+  const expiresLabel = timeUntil(snippet.expires_at)
+  const isExpiringSoon = expiresSoon(snippet.expires_at)
 
   return (
     <div className={styles.page}>
@@ -81,8 +81,8 @@ export default function SharedSnippetView({ snippet }: { snippet: SharedSnippet 
         </div>
 
         <div className={styles.topZone}>
-          <span className={styles.expiration}>
-            expires in {expiresIn}d
+          <span className={`${styles.expiration} ${isExpiringSoon ? styles.expirationSoon : ''}`}>
+            ⏱ {expiresLabel}
           </span>
           {snippet.tags.map(tag => (
             <span key={tag} className={styles.tags}>

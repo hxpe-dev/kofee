@@ -6,8 +6,9 @@ import { supabase } from '@/lib/supabase'
 import { Snippet } from '@/types/snippet'
 import ImportModal from './ImportModal'
 import styles from '@/styles/sidebar.module.css'
-import { IconDoubleArrows, IconDownload, IconGist, IconKofi, IconSignOut } from './icons'
+import { IconDoubleArrows, IconDownload, IconGist, IconKofi, IconShare, IconSignOut } from './icons'
 import { getGuestSnippets } from '@/lib/guestSnippets'
+import { timeAgo } from '@/lib/utils'
 
 interface Props {
   snippets: Snippet[]
@@ -46,16 +47,6 @@ const LANG_COLORS: Record<string, string> = {
   cs: 'var(--lang-cs)',
   cpp: 'var(--lang-cpp)',
   other: 'var(--lang-other)',
-}
-
-function timeAgo(ts: string) {
-  const diff = Date.now() - new Date(ts).getTime()
-  const m = Math.floor(diff / 60000)
-  if (m < 1) return 'just now'
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
 }
 
 export default function Sidebar({
@@ -183,6 +174,13 @@ export default function Sidebar({
                   >
                     <IconKofi/>
                     Support us
+                  </a>
+                  <a
+                    href="/shares"
+                    className={styles.avatarMenuLink}
+                  >
+                    <IconShare />
+                    My Shares
                   </a>
                 </div>
                 <button

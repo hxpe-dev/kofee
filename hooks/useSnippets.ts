@@ -476,7 +476,13 @@ export function useSnippets({
         .insert({ user_id: sessionUserId, title, code, lang, tags })
         .select().single()
 
-      if (error) throw error
+      if (error) {
+        if (error.code === 'P0001' && error.message?.includes('Share limit reached')) {
+          showToast('Share limit reached (20 max), delete some from My Shares')
+          return
+        }
+        throw error
+      }
       if (!data) throw new Error('No share data returned')
 
       const url = `${window.location.origin}/s/${data.id}`

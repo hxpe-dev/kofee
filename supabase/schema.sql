@@ -104,6 +104,28 @@ create policy "Owners can delete shared snippets"
   on shared_snippets for delete
   using (auth.uid()::text = user_id);
 
+-- =========================================================
+-- SHARE LIMIT FUNCTION
+-- =========================================================
+create or replace function check_share_limit()
+returns trigger as $$
+begin
+  if (
+    select count(*) from shared_snippets
+    where user_id = new.user_id
+    and expires_at > now()
+  ) >= 20 then
+    raise exception 'Share limit reached';
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger enforce_share_limit
+  before insert on shared_snippets
+  for each row
+  execute function check_share_limit();
+
 
 -- =========================================================
 -- CLEANUP FUNCTION
