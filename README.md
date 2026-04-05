@@ -1,6 +1,6 @@
 <div align="center">
 
-# ☕ [`kofee.dev`](https://kofee.dev)
+# ☕ [`kofee.dev`](https://www.kofee.dev)
 
 **A minimal, beautiful code snippet manager for developers.**
 
