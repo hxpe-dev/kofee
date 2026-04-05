@@ -131,59 +131,9 @@
   margin-top: 2px;
 }
 
-.avatarMenuDownload {
-  width: 100%;
-  padding: 7px var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-dim);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-  font-family: var(--font-mono);
-  background: transparent;
-  border: none;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-1);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.avatarMenuDownload:hover {
-  background: rgba(200, 150, 90, 0.08);
-  color: var(--color-accent);
-}
-
-.avatarMenuSignOut {
-  width: 100%;
-  padding: 7px var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-dim);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-  font-family: var(--font-mono);
-  background: transparent;
-  border: none;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.avatarMenuSignOut:hover {
-  background: rgba(200, 80, 80, 0.12);
-  color: var(--color-danger);
-}
-
-
 .avatarMenuLinks {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-1);
-  padding-bottom: var(--space-1);
 }
 
 .avatarMenuLink {
@@ -202,6 +152,14 @@
 .avatarMenuLink:hover {
   background: rgba(200, 150, 90, 0.08);
   color: var(--color-accent);
+}
+
+.avatarMenuLinkDanger {
+  color: var(--color-danger) !important;
+}
+
+.avatarMenuLinkDanger:hover {
+  background: rgba(200, 80, 80, 0.08) !important;
 }
 
 /* Search */

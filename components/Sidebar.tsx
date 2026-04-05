@@ -182,43 +182,37 @@ export default function Sidebar({
                     <IconShare />
                     My Shares
                   </a>
-                </div>
-                <button
-                  className={styles.avatarMenuDownload}
-                  onClick={() => { 
-                    onDownloadAll()
-                    setMenuOpen(false)
-                  }}
-                >
-                  <IconDownload/>
-                  Download all
-                </button>
-                {session && hasLocalSnippets && (
-                  <button
-                    className={styles.avatarMenuDownload}
-                    onClick={() => {
-                      onMigrateGuest()
-                      setMenuOpen(false)
+                  <a
+                    href="#"
+                    className={styles.avatarMenuLink}
+                    onClick={e => { e.preventDefault(); onDownloadAll(); setMenuOpen(false) }}
+                  >
+                    <IconDownload/>
+                    Download all
+                  </a>
+                  {session && hasLocalSnippets && (
+                    <a
+                      href="#"
+                      className={styles.avatarMenuLink}
+                      onClick={e => { e.preventDefault(); onMigrateGuest(); setMenuOpen(false) }}
+                    >
+                      <IconDoubleArrows/>
+                      Import local snippets
+                    </a>
+                  )}
+                  <a              
+                    href="#"
+                    className={`${styles.avatarMenuLink} ${styles.avatarMenuLinkDanger}`}
+                    onClick={e => {
+                      e.preventDefault()
+                      if (!isGuest) supabase.auth.signOut()
+                      else window.location.href = '/'
                     }}
                   >
-                    <IconDoubleArrows/>
-                    Import local snippets
-                  </button>
-                )}
-                <button
-                  className={styles.avatarMenuSignOut}
-                  onClick={() => {
-                    if(!isGuest) {
-                      supabase.auth.signOut()
-                    } else {
-                      // Guest: remove ?guest param and go to login
-                      window.location.href = '/'
-                    }
-                  }}
-                >
-                  <IconSignOut/>
-                  {!isGuest ? 'Sign out' : 'Back to login'}
-                </button>
+                    <IconSignOut/>
+                    {!isGuest ? 'Sign out' : 'Back to login'}
+                  </a>
+                </div>
               </div>
             )}
           </div>
