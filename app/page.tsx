@@ -302,7 +302,7 @@ export default function Home() {
                 className={styles.btnMobileBack}
                 onClick={() => setMobileView('sidebar')}
               >
-                ← Back
+                ‹
               </button>
               <input
                 className={styles.titleInput}
