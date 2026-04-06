@@ -14,6 +14,7 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Kofee - Your brew of code',
   description: 'A minimal code snippet manager',
+  icons: "https://kofee.dev/favicon.ico",
 
   openGraph: {
     title: 'Kofee - Your brew of code',
