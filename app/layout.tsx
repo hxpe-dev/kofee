@@ -15,9 +15,19 @@ export const metadata: Metadata = {
   title: 'Kofee - Your brew of code',
   description: 'A minimal code snippet manager',
   icons: {
-    icon: "https://kofee.dev/favicon.ico",
-    apple: "https://kofee.dev/favicon-180x180.png",
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-256x256.png', sizes: '256x256', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon-180x180.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
   },
+  manifest: '/manifest.json',
 
   openGraph: {
     title: 'Kofee - Your brew of code',
