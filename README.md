@@ -25,7 +25,7 @@ Save, tag, search, and publish your code snippets with GitHub Gist integration b
 
 ## Features
 
-- **Snippet editor** with full syntax highlighting (JS, TS, Python, CSS, SQL, HTML, Bash, JSON)
+- **Snippet editor** with full syntax highlighting (JS, TS, Python, Rust, Java, C, C++, C#, CSS, SQL, HTML, Bash, JSON)
 - **Tag system**: organize and filter your snippets by tag
 - **GitHub Gist integration**: push any snippet to a private Gist in one click
 - **Import from Gist**: paste a Gist URL and import it instantly
