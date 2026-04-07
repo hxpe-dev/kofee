@@ -12,7 +12,7 @@
 
 > [!NOTE]
 > **Kofee is just getting started.**  
-> We're running on free-tier infrastructure while we find our footing.  
+> We're running on free-tier infrastructure as we get things up and running.  
 > If you try it and enjoy it, consider [supporting the project](https://ko-fi.com/hxpedev), it directly helps us scale beyond the free tier and keep building.  
 > **Feedback**, **bug reports**, and **stars** on the repo mean just as much. ☕
 
@@ -20,6 +20,10 @@
 
 **Kofee** is an open source snippet manager built for developers who care about their tools.  
 Save, tag, search, and publish your code snippets with GitHub Gist integration baked in. Warm aesthetic and fast.
+
+---
+
+[![Watch the demo](assets/kofee-demo.mp4)](assets/kofee-demo.mp4)
 
 ---
 
