@@ -23,7 +23,7 @@ Save, tag, search, and publish your code snippets with GitHub Gist integration b
 
 ---
 
-https://github.com/hxpe-dev/kofee/blob/main/assets/kofee-demo.mov
+![Demo GIF](https://github.com/hxpe-dev/kofee/raw/main/assets/kofee-demo.gif)
 
 ---
 
